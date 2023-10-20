@@ -23,68 +23,68 @@ From time to time, as well as at the end, a consistency check shall be performed
 
 Two updates involving distinct variables must be able to proceed independently (without having to wait for the same mutex).
 */
-
 public class Main {
-    static List<ObservableVariable> primaryVariablesList;
-    static List<ObservableVariable> secondaryVariablesList;
+    static List<ObservableVariable> primaryVariablesList = new ArrayList<>();
+    static List<ObservableVariable> secondaryVariablesList = new ArrayList<>();
     static Random rand = new Random();
+
+    static int RANDOM_UPPERBOUND = 100;
 
     private static void threadFunction(int threadIndex) throws InterruptedException {
         while (true) {
-            Integer primaryVariableIndex = rand.nextInt(3);
-            Integer newValue = rand.nextInt(100);
-            String variableName = "";
-            switch (primaryVariableIndex) {
-                case 0:
-                    A.lock.lock();
-                    A.setVariable(newValue);
-                    A.lock.unlock();
-                    variableName = "A";
-                    break;
-                case 1:
-                    B.lock.lock();
-                    B.setVariable(newValue);
-                    B.lock.unlock();
-                    variableName = "B";
-                    break;
-                case 2:
-                    C.lock.lock();
-                    C.setVariable(newValue);
-                    C.lock.unlock();
-                    variableName = "C";
-                    break;
-            }
-            System.out.printf("Variable %s has changed\n---------------------------------------\n", variableName);
+            ObservableVariable randomPrimaryVariableFromThePrimaryVariableList =
+                    primaryVariablesList.get(rand.nextInt(primaryVariablesList.size()));
+
+            randomPrimaryVariableFromThePrimaryVariableList.lock.lock();
+            randomPrimaryVariableFromThePrimaryVariableList.setVariable(rand.nextInt(RANDOM_UPPERBOUND));
+            randomPrimaryVariableFromThePrimaryVariableList.lock.unlock();
+
+            System.out.printf("Variable %s has changed\n---------------------------------------\n",
+                    randomPrimaryVariableFromThePrimaryVariableList.name);
             Thread.sleep(500);
+        }
+    }
+
+    private static void consistencyCheckForSecondaryVariables() throws InterruptedException {
+        while (true) {
+            Thread.sleep(1000);
+            primaryVariablesList.forEach((secondaryVariable) -> secondaryVariable.lock.lock());
+            long numberOfConsistentVariables =
+                    secondaryVariablesList.stream().map(ObservableVariable::consistencyCheck)
+                            .filter(Boolean::booleanValue).count();
+            System.out.printf("CONSISTENCY CHECK STATUS:\nThere are %d consistent variables out of %d\n",
+                    numberOfConsistentVariables, secondaryVariablesList.size());
+            System.out.println("--------------------------------------------------");
+            primaryVariablesList.forEach((secondaryVariable) -> secondaryVariable.lock.unlock());
         }
     }
 
     public static void main(String[] args) throws Exception {
         int numberOfPrimaryVariables;
         int numberOfSecondaryVariables;
-        int numberOfThreads = 100;
+        int numberOfThreads;
 
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("Input the number of primary variables: ");
+        System.out.print("Input the number of primary variables: ");
         numberOfPrimaryVariables = scanner.nextInt();
         if (numberOfPrimaryVariables < 1)
             throw new Exception("You must input a number of primary variables larger than 1");
 
 
-        System.out.println("Input the number of secondary variables: ");
+        System.out.print("Input the number of secondary variables: ");
         numberOfSecondaryVariables = scanner.nextInt();
         if (numberOfSecondaryVariables < 1)
             throw new Exception("You must input a number of secondary variables larger than 1");
 
-        System.out.println("Input the number of threads: ");
+        System.out.print("Input the number of threads: ");
         numberOfThreads = scanner.nextInt();
         if (numberOfThreads < 1) {
             throw new Exception("You must have at least one thread");
         }
 
         for (int variableIndex = 0; variableIndex < numberOfPrimaryVariables; variableIndex++) {
-            primaryVariablesList.add(new ObservableVariable(rand.nextInt(100), Integer.toString(variableIndex)));
+            primaryVariablesList.add(new ObservableVariable(rand.nextInt(RANDOM_UPPERBOUND), Integer.toString(variableIndex)));
         }
 
         for (int variableIndex = 0; variableIndex < numberOfSecondaryVariables; variableIndex++) {
@@ -95,7 +95,7 @@ public class Main {
             int numberOfVariablesToWatch = rand.nextInt(allVariablesListSize);
             List<ObservableVariable> variablesToWatch = new ArrayList<>();
 
-            for(int i=0;i<numberOfVariablesToWatch;i++){
+            for (int i = 0; i < numberOfVariablesToWatch; i++) {
                 ObservableVariable variableToWatch = allVariablesList.get(rand.nextInt(allVariablesListSize));
                 variablesToWatch.add(variableToWatch);
             }
@@ -119,18 +119,6 @@ public class Main {
             });
         }
 
-        while (true) {
-            Thread.sleep(1000);
-            A.lock.lock();
-            B.lock.lock();
-            C.lock.lock();
-            D.consistencyCheck();
-            E.consistencyCheck();
-            F.consistencyCheck();
-            System.out.println("--------------------------------------------------");
-            A.lock.unlock();
-            B.lock.unlock();
-            C.lock.unlock();
-        }
+        consistencyCheckForSecondaryVariables();
     }
 }

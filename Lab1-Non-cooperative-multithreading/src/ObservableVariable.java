@@ -26,11 +26,9 @@ public class ObservableVariable {
         );
     }
     public void setVariable(Integer newValue){
-//        lock.lock();
         Integer differenceBetweenOldValueAndNewValue = newValue - value;
         value = newValue;
         notifyVariables(differenceBetweenOldValueAndNewValue);
-//        lock.unlock();
     }
 
     public void updateVariable(Integer newValue){
@@ -45,16 +43,7 @@ public class ObservableVariable {
        return variablesToWatch.stream().map((variable) -> variable.value).reduce(0, Integer::sum);
     }
 
-    public void consistencyCheck(){
-        lock.lock();
-        int sum = computeSum();
-        System.out.printf("For variable %s:\n---Current value %s\n---Real value %s\n", this.name,this.value, sum);
-        if(this.value == sum){
-            System.out.println("CONSISTENCY CHECK PASSED");
-        }
-        else{
-            System.out.println("CONSISTENCY CHECK FAILED");
-        }
-        lock.unlock();
+    public boolean consistencyCheck(){
+        return value == computeSum();
     }
 }
