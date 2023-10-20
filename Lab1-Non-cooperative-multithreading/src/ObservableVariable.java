@@ -4,15 +4,18 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ObservableVariable {
-    public static Lock lock = new ReentrantLock();
+    public Lock lock = new ReentrantLock();
+    public String name = "";
     public int value;
     public List<ObservableVariable> variablesToNotify;
     public List<ObservableVariable> variablesToWatch;
-    public ObservableVariable(Integer value){
+    public ObservableVariable(Integer value, String name){
         this.value = value;
+        this.name = name;
         this.variablesToNotify = new ArrayList<>();
     }
-    public ObservableVariable(List<ObservableVariable> variablesToWatch){
+    public ObservableVariable(List<ObservableVariable> variablesToWatch, String name){
+        this.name = name;
         this.variablesToWatch = variablesToWatch;
         this.value = computeSum();
         variablesToNotify = new ArrayList<>();
@@ -23,11 +26,11 @@ public class ObservableVariable {
         );
     }
     public void setVariable(Integer newValue){
-        lock.lock();
+//        lock.lock();
         Integer differenceBetweenOldValueAndNewValue = newValue - value;
         value = newValue;
         notifyVariables(differenceBetweenOldValueAndNewValue);
-        lock.unlock();
+//        lock.unlock();
     }
 
     public void updateVariable(Integer newValue){
@@ -35,7 +38,6 @@ public class ObservableVariable {
         this.value += newValue;
         notifyVariables(newValue);
         lock.unlock();
-
     }
 
     public int computeSum(){
@@ -43,11 +45,16 @@ public class ObservableVariable {
        return variablesToWatch.stream().map((variable) -> variable.value).reduce(0, Integer::sum);
     }
 
-    public boolean consistencyCheck(){
+    public void consistencyCheck(){
         lock.lock();
         int sum = computeSum();
-        System.out.printf("Current value %s\n Real value %s\n", this.value, sum);
+        System.out.printf("For variable %s:\n---Current value %s\n---Real value %s\n", this.name,this.value, sum);
+        if(this.value == sum){
+            System.out.println("CONSISTENCY CHECK PASSED");
+        }
+        else{
+            System.out.println("CONSISTENCY CHECK FAILED");
+        }
         lock.unlock();
-        return this.value == sum;
     }
 }

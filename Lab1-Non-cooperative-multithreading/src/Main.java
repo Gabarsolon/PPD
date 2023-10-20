@@ -1,9 +1,9 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /*
 3. Summation with fixed structure of inputs
@@ -25,96 +25,112 @@ Two updates involving distinct variables must be able to proceed independently (
 */
 
 public class Main {
-    static ObservableVariable A;
-    static ObservableVariable B;
-    static ObservableVariable C;
-    static ObservableVariable D;
-    static ObservableVariable E;
-    static ObservableVariable F;
+    static List<ObservableVariable> primaryVariablesList;
+    static List<ObservableVariable> secondaryVariablesList;
     static Random rand = new Random();
 
-    static Lock lockForA = new ReentrantLock();
-    static Lock lockForB = new ReentrantLock();
-    static Lock lockForC = new ReentrantLock();
-
-    private static void threadFunction(int threadIndex){
-        while(true){
-//            System.out.println("Thread " + threadIndex + " is doing stuff");
+    private static void threadFunction(int threadIndex) throws InterruptedException {
+        while (true) {
             Integer primaryVariableIndex = rand.nextInt(3);
             Integer newValue = rand.nextInt(100);
             String variableName = "";
-            switch(primaryVariableIndex){
+            switch (primaryVariableIndex) {
                 case 0:
-                    lockForA.lock();
+                    A.lock.lock();
                     A.setVariable(newValue);
-                    lockForA.unlock();
+                    A.lock.unlock();
                     variableName = "A";
                     break;
                 case 1:
-                    lockForB.lock();
+                    B.lock.lock();
                     B.setVariable(newValue);
-                    lockForB.unlock();
+                    B.lock.unlock();
                     variableName = "B";
                     break;
                 case 2:
-                    lockForC.lock();
+                    C.lock.lock();
                     C.setVariable(newValue);
-                    lockForC.unlock();
+                    C.lock.unlock();
                     variableName = "C";
                     break;
             }
-//            System.out.printf("Thread %d modified variable %s\n", threadIndex, variableName);
-//            System.out.println("A=" + A.value);
-//            System.out.println("B=" + B.value);
-//            System.out.println("C=" + C.value);
-//            System.out.println("D=" + D.value);
-//            System.out.println("E=" + E.value);
-//            System.out.println("F=" + F.value);
-//            System.out.println(D.consistencyCheck());
-//            System.out.println(E.consistencyCheck());
-//            System.out.println(F.consistencyCheck());
-//            System.out.println();
+            System.out.printf("Variable %s has changed\n---------------------------------------\n", variableName);
+            Thread.sleep(500);
         }
     }
-    public static void main(String[] args) throws InterruptedException, ExecutionException {
 
-        A = new ObservableVariable(10);
-        B = new ObservableVariable(15);
-        C = new ObservableVariable(20);
+    public static void main(String[] args) throws Exception {
+        int numberOfPrimaryVariables;
+        int numberOfSecondaryVariables;
+        int numberOfThreads = 100;
 
-        D = new ObservableVariable(Arrays.asList(A,B));
-        E = new ObservableVariable(Arrays.asList(B,C));
-        F = new ObservableVariable(Arrays.asList(D,A));
+        Scanner scanner = new Scanner(System.in);
 
-        A.variablesToNotify.add(D);
-        B.variablesToNotify.add(D);
+        System.out.println("Input the number of primary variables: ");
+        numberOfPrimaryVariables = scanner.nextInt();
+        if (numberOfPrimaryVariables < 1)
+            throw new Exception("You must input a number of primary variables larger than 1");
 
-        B.variablesToNotify.add(E);
-        C.variablesToNotify.add(E);
 
-        D.variablesToNotify.add(F);
-        A.variablesToNotify.add(F);
+        System.out.println("Input the number of secondary variables: ");
+        numberOfSecondaryVariables = scanner.nextInt();
+        if (numberOfSecondaryVariables < 1)
+            throw new Exception("You must input a number of secondary variables larger than 1");
 
-        int nThreads = 10;
-        ExecutorService executorService = Executors.newFixedThreadPool(nThreads);
-
-        for(int threadIndex = 0; threadIndex < nThreads; threadIndex++) {
-            int finalThreadIndex = threadIndex;
-            executorService.execute(() -> threadFunction(finalThreadIndex));
+        System.out.println("Input the number of threads: ");
+        numberOfThreads = scanner.nextInt();
+        if (numberOfThreads < 1) {
+            throw new Exception("You must have at least one thread");
         }
 
-        while(true){
-            Thread.sleep(500);
-            lockForA.lock();
-            lockForB.lock();
-            lockForC.lock();
-            System.out.println(D.consistencyCheck());
-            System.out.println(E.consistencyCheck());
-            System.out.println(F.consistencyCheck());
-            System.out.println();
-            lockForA.unlock();
-            lockForB.unlock();
-            lockForC.unlock();
+        for (int variableIndex = 0; variableIndex < numberOfPrimaryVariables; variableIndex++) {
+            primaryVariablesList.add(new ObservableVariable(rand.nextInt(100), Integer.toString(variableIndex)));
+        }
+
+        for (int variableIndex = 0; variableIndex < numberOfSecondaryVariables; variableIndex++) {
+            List<ObservableVariable> allVariablesList = Stream.concat(primaryVariablesList.stream(),
+                    secondaryVariablesList.stream()).toList();
+            int allVariablesListSize = allVariablesList.size();
+
+            int numberOfVariablesToWatch = rand.nextInt(allVariablesListSize);
+            List<ObservableVariable> variablesToWatch = new ArrayList<>();
+
+            for(int i=0;i<numberOfVariablesToWatch;i++){
+                ObservableVariable variableToWatch = allVariablesList.get(rand.nextInt(allVariablesListSize));
+                variablesToWatch.add(variableToWatch);
+            }
+
+            ObservableVariable secondaryVariable = new ObservableVariable(variablesToWatch, Integer.toString(variableIndex));
+            secondaryVariablesList.add(secondaryVariable);
+
+            variablesToWatch.forEach((variable) -> variable.variablesToNotify.add(secondaryVariable));
+        }
+
+        ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
+
+        for (int threadIndex = 0; threadIndex < numberOfThreads; threadIndex++) {
+            int finalThreadIndex = threadIndex;
+            executorService.execute(() -> {
+                try {
+                    threadFunction(finalThreadIndex);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
+
+        while (true) {
+            Thread.sleep(1000);
+            A.lock.lock();
+            B.lock.lock();
+            C.lock.lock();
+            D.consistencyCheck();
+            E.consistencyCheck();
+            F.consistencyCheck();
+            System.out.println("--------------------------------------------------");
+            A.lock.unlock();
+            B.lock.unlock();
+            C.lock.unlock();
         }
     }
 }
