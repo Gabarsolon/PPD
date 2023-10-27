@@ -92,7 +92,7 @@ public class Main {
                     secondaryVariablesList.stream()).toList();
             int allVariablesListSize = allVariablesList.size();
 
-            int numberOfVariablesToWatch = rand.nextInt(allVariablesListSize);
+            int numberOfVariablesToWatch = rand.nextInt(3);
             List<ObservableVariable> variablesToWatch = new ArrayList<>();
 
             for (int i = 0; i < numberOfVariablesToWatch; i++) {
