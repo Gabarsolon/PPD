@@ -1,31 +1,27 @@
-import java.util.Scanner;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Stream;
 
 public class Main {
     static Vector<Double> firstVector = new Vector<>();
     static Vector<Double> secondVector = new Vector<>();
-
     static Integer vectorsSize;
-
     static private ReentrantLock lockObj = new ReentrantLock();
-    static private Condition producerComputedProductPair = lockObj.newCondition();
-    static private Condition consumerAddedProductToSum = lockObj.newCondition();
-    static private Double computedProductPair;
+    static private Condition condition = lockObj.newCondition();
+    static private Queue<Double> computedProductPairs = new ArrayDeque<>();
+    static private Integer EMPTY_QUEUE_SIZE = 0;
+    static private Integer maxQueueSize;
     static private Double scalarProduct = 0.0;
 
     static public void computeProduct() {
         for (int index = 0; index < vectorsSize; index++) {
             lockObj.lock();
             try {
-                while (computedProductPair != null) {
-                    consumerAddedProductToSum.await();
+                while (computedProductPairs.size() == maxQueueSize) {
+                    condition.await();
                 }
-                computedProductPair = firstVector.get(index) * secondVector.get(index);
-                producerComputedProductPair.signalAll();
-
+                computedProductPairs.add(firstVector.get(index) * secondVector.get(index));
+                condition.signalAll();
             } catch (InterruptedException exception) {
                 Thread.currentThread().interrupt();
             } finally {
@@ -38,13 +34,11 @@ public class Main {
         for (int index = 0; index < vectorsSize; index++) {
             lockObj.lock();
             try {
-                while (computedProductPair == null) {
-                    producerComputedProductPair.await();
+                while (computedProductPairs.size() == EMPTY_QUEUE_SIZE) {
+                    condition.await();
                 }
-                scalarProduct += computedProductPair;
-                computedProductPair = null;
-                consumerAddedProductToSum.signalAll();
-
+                scalarProduct += computedProductPairs.poll();
+                condition.signalAll();
             } catch (InterruptedException exception) {
                 Thread.currentThread().interrupt();
             } finally {
@@ -58,6 +52,9 @@ public class Main {
 
         System.out.print("Input the size of the vectors: ");
         vectorsSize = scanner.nextInt();
+
+        System.out.print("Input the maximum queue size: ");
+        maxQueueSize = scanner.nextInt();
 
         System.out.print("Input the first vector: ");
 
