@@ -1,6 +1,8 @@
-import java.util.Arrays;
-import java.util.Random;
-import java.util.Scanner;
+import java.sql.Time;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
     static int noOfRowsFirstMatrix = 9;
@@ -11,6 +13,9 @@ public class Main {
     static int[][] secondMatrix;
     static int[][] resultMatrix;
     static Random rand = new Random();
+    static int numberOfTasks = 4;
+    static int numberOfThreadsForThreadPool = 10;
+    static List<List<Pair>> tasks = new ArrayList<>();
 
     static void addRandomNumbersToMatrix(int[][] matrix) {
         int noOfRows = matrix.length;
@@ -27,23 +32,73 @@ public class Main {
         System.out.println();
     }
 
-    static int computeElementOfResultingMatrix(int rowFromFirstMatrix, int columnFromSecondMatrix) {
+    static void computeElementOfResultingMatrix(int rowFromFirstMatrix, int columnFromSecondMatrix) {
         int sumOfProductsBetweenRowFromFirstMatrixAndColumnFromSecondMatrix = 0;
 
         for (int index = 0; index < noOfRowsSecondMatrix; index++)
             sumOfProductsBetweenRowFromFirstMatrixAndColumnFromSecondMatrix
                     += firstMatrix[rowFromFirstMatrix][index] * secondMatrix[index][columnFromSecondMatrix];
 
-        return sumOfProductsBetweenRowFromFirstMatrixAndColumnFromSecondMatrix;
+        resultMatrix[rowFromFirstMatrix][columnFromSecondMatrix] =
+                sumOfProductsBetweenRowFromFirstMatrixAndColumnFromSecondMatrix;
     }
 
-    static void matrixProduct() {
+    static void taskExecution(List<Pair> elementsToCompute) {
+        elementsToCompute.forEach(pair -> computeElementOfResultingMatrix(pair.first, pair.second));
+    }
+
+    static void generateTasks() {
+        int currentTask = 0;
+
+        for (int taskIndex = 0; taskIndex < numberOfTasks; taskIndex++)
+            tasks.add(new ArrayList<>());
+
         for (int i = 0; i < noOfRowsFirstMatrix; i++)
-            for(int j=0; j<noOfColumnsSecondMatrix; j++)
-                resultMatrix[i][j] = computeElementOfResultingMatrix(i,j);
+            for (int j = 0; j < noOfColumnsSecondMatrix; j++) {
+                tasks.get(currentTask).add(new Pair(i, j));
+                currentTask = (currentTask + 1) % numberOfTasks;
+            }
     }
 
-    public static void main(String[] args) {
+    static void matrixProductSerialized() {
+        for (int i = 0; i < noOfRowsFirstMatrix; i++)
+            for (int j = 0; j < noOfColumnsSecondMatrix; j++)
+                computeElementOfResultingMatrix(i, j);
+
+    }
+
+    static void matrixProductWithThreads() {
+        List<Thread> threads = new ArrayList<>();
+        tasks.forEach(task -> threads.add(new Thread(() ->
+                taskExecution(task)
+        )));
+
+        threads.forEach(Thread::start);
+        threads.forEach(thread -> {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    static void matrixProductWithThreadPool() {
+        var executorService = Executors.newFixedThreadPool(numberOfThreadsForThreadPool);
+
+        tasks.forEach(task -> executorService.execute(new Thread(() -> taskExecution(task))));
+
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                System.out.println("Timeout reached. Some tasks may still be running.");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) throws InterruptedException {
         var scanner = new Scanner(System.in);
 
         System.out.print("Input the number of rows for the first matrix: ");
@@ -52,11 +107,18 @@ public class Main {
         System.out.print("Input the number of columns for the first matrix: ");
         noOfColumnsFirstMatrix = scanner.nextInt();
 
-        System.out.print("Input the number of rows for the second matrix: ");
-        noOfRowsSecondMatrix = scanner.nextInt();
+        //the number of rows from the second matrix must be equal to the number of column
+        //in the first in order to have a valid matrix multiplication
+        noOfRowsSecondMatrix = noOfRowsFirstMatrix;
 
         System.out.print("Input the number of columns for the second matrix: ");
         noOfColumnsSecondMatrix = scanner.nextInt();
+
+        System.out.print("Input the number of tasks: ");
+        numberOfTasks = scanner.nextInt();
+
+        System.out.print("Input the number of threads for the thread pool: ");
+        numberOfThreadsForThreadPool = scanner.nextInt();
 
         firstMatrix = new int[noOfRowsFirstMatrix][noOfColumnsFirstMatrix];
         secondMatrix = new int[noOfRowsSecondMatrix][noOfColumnsSecondMatrix];
@@ -65,15 +127,27 @@ public class Main {
         addRandomNumbersToMatrix(firstMatrix);
         addRandomNumbersToMatrix(secondMatrix);
 
-        matrixProduct();
+        generateTasks();
 
-        System.out.println("First matrix: ");
-        printMatrix(firstMatrix);
+        long start = System.nanoTime();
+        matrixProductWithThreads();
+        long end = System.nanoTime();
 
-        System.out.println("Second matrix: ");
-        printMatrix(secondMatrix);
+        System.out.printf("Matrix product with threads finished in: %dms\n", (end-start)/1000000);
+
+        start = System.nanoTime();
+        matrixProductWithThreadPool();
+        end = System.nanoTime();
+
+        System.out.printf("Matrix product with thread pool finished in: %dms\n", (end-start)/1000000);
+
+        start = System.nanoTime();
+        matrixProductSerialized();
+        end = System.nanoTime();
+
+        System.out.printf("Matrix product serialized in: %dms\n", (end-start)/1000000);
 
         System.out.println("Result matrix: ");
-        printMatrix(resultMatrix);
+//        printMatrix(resultMatrix);
     }
 }
