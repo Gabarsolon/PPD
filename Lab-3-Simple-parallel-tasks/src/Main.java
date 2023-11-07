@@ -1,8 +1,7 @@
-import java.sql.Time;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main {
     static int noOfRowsFirstMatrix = 9;
@@ -43,35 +42,32 @@ public class Main {
                 sumOfProductsBetweenRowFromFirstMatrixAndColumnFromSecondMatrix;
     }
 
-    static void taskExecution(List<Pair> elementsToCompute) {
-        elementsToCompute.forEach(pair -> computeElementOfResultingMatrix(pair.first, pair.second));
-    }
+    static void taskExecution(int taskIndex) {
+        int i = taskIndex / noOfRowsFirstMatrix;
+        int j = taskIndex % noOfColumnsSecondMatrix;
 
-    static void generateTasks() {
-        int currentTask = 0;
-
-        for (int taskIndex = 0; taskIndex < numberOfTasks; taskIndex++)
-            tasks.add(new ArrayList<>());
-
-        for (int i = 0; i < noOfRowsFirstMatrix; i++)
-            for (int j = 0; j < noOfColumnsSecondMatrix; j++) {
-                tasks.get(currentTask).add(new Pair(i, j));
-                currentTask = (currentTask + 1) % numberOfTasks;
+        while (i < noOfRowsFirstMatrix) {
+            computeElementOfResultingMatrix(i, j);
+            j += numberOfTasks;
+            if (j >= noOfColumnsSecondMatrix) {
+                i = i + j / noOfColumnsSecondMatrix;
+                j = j % noOfColumnsSecondMatrix;
             }
+        }
     }
 
     static void matrixProductSerialized() {
         for (int i = 0; i < noOfRowsFirstMatrix; i++)
             for (int j = 0; j < noOfColumnsSecondMatrix; j++)
                 computeElementOfResultingMatrix(i, j);
-
     }
 
-    static void matrixProductWithThreads() {
+    static void matrixProductWithThreads() throws InterruptedException {
         List<Thread> threads = new ArrayList<>();
-        tasks.forEach(task -> threads.add(new Thread(() ->
-                taskExecution(task)
-        )));
+        for (int taskIndex = 0; taskIndex < numberOfTasks; taskIndex++) {
+            int finalTaskIndex = taskIndex;
+            threads.add(new Thread(() -> taskExecution(finalTaskIndex)));
+        }
 
         threads.forEach(Thread::start);
         threads.forEach(thread -> {
@@ -86,7 +82,10 @@ public class Main {
     static void matrixProductWithThreadPool() {
         var executorService = Executors.newFixedThreadPool(numberOfThreadsForThreadPool);
 
-        tasks.forEach(task -> executorService.execute(new Thread(() -> taskExecution(task))));
+        for (int taskIndex = 0; taskIndex < numberOfTasks; taskIndex++) {
+            int finalTaskIndex = taskIndex;
+            executorService.execute((() -> taskExecution(finalTaskIndex)));
+        }
 
         executorService.shutdown();
         try {
@@ -127,27 +126,27 @@ public class Main {
         addRandomNumbersToMatrix(firstMatrix);
         addRandomNumbersToMatrix(secondMatrix);
 
-        generateTasks();
+//        generateTasks();
 
         long start = System.nanoTime();
         matrixProductWithThreads();
         long end = System.nanoTime();
 
-        System.out.printf("Matrix product with threads finished in: %dms\n", (end-start)/1000000);
+        System.out.printf("Matrix product with threads finished in: %dms\n", (end - start) / 1000000);
 
         start = System.nanoTime();
         matrixProductWithThreadPool();
         end = System.nanoTime();
 
-        System.out.printf("Matrix product with thread pool finished in: %dms\n", (end-start)/1000000);
+        System.out.printf("Matrix product with thread pool finished in: %dms\n", (end - start) / 1000000);
 
         start = System.nanoTime();
         matrixProductSerialized();
         end = System.nanoTime();
 
-        System.out.printf("Matrix product serialized in: %dms\n", (end-start)/1000000);
+        System.out.printf("Matrix product serialized in: %dms\n", (end - start) / 1000000);
 
-        System.out.println("Result matrix: ");
+//        System.out.println("Result matrix: ");
 //        printMatrix(resultMatrix);
     }
 }
