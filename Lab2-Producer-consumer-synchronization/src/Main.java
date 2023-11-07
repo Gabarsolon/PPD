@@ -3,8 +3,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Main {
-    static Vector<Double> firstVector = new Vector<>();
-    static Vector<Double> secondVector = new Vector<>();
+    static List<Double> firstVector = new ArrayList<>();
+    static List<Double> secondVector = new ArrayList<>();
     static Integer vectorsSize;
     static private ReentrantLock lockObj = new ReentrantLock();
     static private Condition condition = lockObj.newCondition();
