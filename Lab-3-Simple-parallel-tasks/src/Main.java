@@ -1,7 +1,8 @@
 import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main {
     static int noOfRowsFirstMatrix = 9;
@@ -14,7 +15,8 @@ public class Main {
     static Random rand = new Random();
     static int numberOfTasks = 4;
     static int numberOfThreadsForThreadPool = 10;
-    static List<List<Pair>> tasks = new ArrayList<>();
+
+    static List<Thread> threads = new ArrayList<>();
 
     static void addRandomNumbersToMatrix(int[][] matrix) {
         int noOfRows = matrix.length;
@@ -62,13 +64,14 @@ public class Main {
                 computeElementOfResultingMatrix(i, j);
     }
 
-    static void matrixProductWithThreads() throws InterruptedException {
-        List<Thread> threads = new ArrayList<>();
+    static void generateThreadsList(){
         for (int taskIndex = 0; taskIndex < numberOfTasks; taskIndex++) {
             int finalTaskIndex = taskIndex;
             threads.add(new Thread(() -> taskExecution(finalTaskIndex)));
         }
+    }
 
+    static void matrixProductWithThreads() throws InterruptedException {
         threads.forEach(Thread::start);
         threads.forEach(thread -> {
             try {
@@ -89,7 +92,7 @@ public class Main {
 
         executorService.shutdown();
         try {
-            if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
                 System.out.println("Timeout reached. Some tasks may still be running.");
             }
         } catch (InterruptedException e) {
@@ -126,11 +129,13 @@ public class Main {
         addRandomNumbersToMatrix(firstMatrix);
         addRandomNumbersToMatrix(secondMatrix);
 
-//        generateTasks();
+        long start, end;
 
-        long start = System.nanoTime();
+        generateThreadsList();
+
+        start = System.nanoTime();
         matrixProductWithThreads();
-        long end = System.nanoTime();
+        end = System.nanoTime();
 
         System.out.printf("Matrix product with threads finished in: %dms\n", (end - start) / 1000000);
 
@@ -144,7 +149,7 @@ public class Main {
         matrixProductSerialized();
         end = System.nanoTime();
 
-        System.out.printf("Matrix product serialized in: %dms\n", (end - start) / 1000000);
+        System.out.printf("Matrix product serialized finished in: %dms\n", (end - start) / 1000000);
 
 //        System.out.println("Result matrix: ");
 //        printMatrix(resultMatrix);
