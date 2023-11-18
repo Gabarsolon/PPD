@@ -111,7 +111,7 @@ public class Main {
 
         //the number of rows from the second matrix must be equal to the number of column
         //in the first in order to have a valid matrix multiplication
-        noOfRowsSecondMatrix = noOfRowsFirstMatrix;
+        noOfRowsSecondMatrix = noOfColumnsFirstMatrix;
 
         System.out.print("Input the number of columns for the second matrix: ");
         noOfColumnsSecondMatrix = scanner.nextInt();
