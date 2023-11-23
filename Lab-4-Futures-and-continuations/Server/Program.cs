@@ -18,6 +18,7 @@ class Program
 			"www.scs.ubbcluj.ro/~trie3244",
 			"www.youtube.ro"
 		};
-		Callbacks.Run(urls);
+		//Callbacks.Run(urls);
+		Tasks.Run(urls);
 	}
 }

@@ -10,18 +10,10 @@ namespace Server
 {
 	class Callbacks
 	{
-		enum State { BeforeRequest, ReadingResponse }
-
 		private Callbacks()
 		{
 
 		}
-
-		static async Task<IPAddress> DnsLookupAsync(string host)
-		{
-			return (await Dns.GetHostAddressesAsync(host))[0];
-		}
-
 		private static void HandleUrl(String url)
 		{
 			var index = url.IndexOf('/');
