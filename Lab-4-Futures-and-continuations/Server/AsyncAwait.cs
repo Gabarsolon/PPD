@@ -8,42 +8,24 @@ using System.Threading;
 
 namespace Server
 {
-	class Callbacks
+	class AsyncAwait
 	{
-		private static void HandleUrl(String url)
+		private static async void HandleUrl(String url)
 		{
 			var index = url.IndexOf('/');
 			var baseUrl = index < 0 ? url : url[..index];
 			var urlPath = index < 0 ? "/" : url[index..];
+			var splittedUrl = new Url(baseUrl, urlPath);
 
 			var ipAddress = Dns.GetHostAddresses(baseUrl)[0];
 			var endPoint = new IPEndPoint(ipAddress, 80);
 
 			var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-			socket.BeginConnect(endPoint, (IAsyncResult ar) => ConnectCallback(ar, socket, new Url(baseUrl, urlPath)), null);
-		}
+			var buffer = new byte[100000];
 
-		private static void ConnectCallback(IAsyncResult ar, Socket socket, Url url)
-		{
-			socket.EndConnect(ar);
-
-			string request = $"GET {url.pathUrl} HTTP/1.1\r\nHost: {url.baseUrl}\r\nContent-Length: 0\r\n\r\n";
-			byte[] requestData = Encoding.ASCII.GetBytes(request);
-			socket.BeginSend(requestData, 0, requestData.Length, 0, (IAsyncResult ar) => SendCallback(ar, socket, url), null);
-		}
-
-		private static void SendCallback(IAsyncResult ar, Socket socket, Url url)
-		{
-			int bytesSent = socket.EndSend(ar);
-
-			// Start receiving response header
-			var buffer = new byte[1000000];
-			socket.BeginReceive(buffer, 0, buffer.Length, 0, (IAsyncResult ar) => ReceiveCallback(ar, socket, url, buffer), null);
-		}
-
-		private static void ReceiveCallback(IAsyncResult ar, Socket socket, Url url, byte[] buffer)
-		{
-			int bytesRead = socket.EndReceive(ar);
+			await Connect(socket, endPoint, new Url(baseUrl, urlPath));
+			await Send(socket, splittedUrl);
+			int bytesRead = await Receive(socket, splittedUrl, buffer);
 
 			if (bytesRead > 0)
 			{
@@ -57,14 +39,35 @@ namespace Server
 				Console.WriteLine("------------------------------------------------------------");
 				Console.WriteLine($"Content Length: {contentLength}");
 				Console.WriteLine("------------------------------------------------------------");
-
-				socket.Close();
 			}
 			else
 			{
-				// Connection closed by the server
-				socket.Close();
+				Console.WriteLine("Connection closed by the server");
 			}
+			socket.Close();
+		}
+
+		private static Task Connect(Socket socket, IPEndPoint endPoint, Url url)
+		{
+			TaskCompletionSource promise = new TaskCompletionSource();
+			socket.BeginConnect(endPoint, (IAsyncResult ar) => { socket.EndConnect(ar); promise.SetResult(); }, null);
+			return promise.Task;
+		}
+
+		private static Task<int> Send(Socket socket, Url url)
+		{
+			TaskCompletionSource<int> promise = new TaskCompletionSource<int>();
+			string request = $"GET {url.pathUrl} HTTP/1.1\r\nHost: {url.baseUrl}\r\nContent-Length: 0\r\n\r\n";
+			byte[] requestData = Encoding.ASCII.GetBytes(request);
+			socket.BeginSend(requestData, 0, requestData.Length, 0, (IAsyncResult ar) => promise.SetResult(socket.EndSend(ar)), null);
+			return promise.Task;
+		}
+
+		private static Task<int> Receive(Socket socket, Url url, byte[] buffer)
+		{
+			TaskCompletionSource<int> promise = new TaskCompletionSource<int>();
+			socket.BeginReceive(buffer, 0, buffer.Length, 0, (IAsyncResult ar) => promise.SetResult(socket.EndReceive(ar)), null);
+			return promise.Task;
 		}
 
 		public static void Run(string[] urls)
