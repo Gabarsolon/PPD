@@ -14,7 +14,7 @@ namespace Server
 
 		private Callbacks()
 		{
-			
+
 		}
 
 		static async Task<IPAddress> DnsLookupAsync(string host)
@@ -22,25 +22,24 @@ namespace Server
 			return (await Dns.GetHostAddressesAsync(host))[0];
 		}
 
-		private static async void HandleUrl(String url)
+		private static void HandleUrl(String url)
 		{
-				var index = url.IndexOf('/');
-				var baseUrl = index < 0 ? url : url[..index];
-				var urlPath = index < 0 ? "/" : url[index..];
+			var index = url.IndexOf('/');
+			var baseUrl = index < 0 ? url : url[..index];
+			var urlPath = index < 0 ? "/" : url[index..];
 
-				var ipAddress = await DnsLookupAsync(baseUrl);
-				var endPoint = new IPEndPoint(ipAddress, 80);
-			Console.WriteLine(ipAddress.ToString());
+			var ipAddress = Dns.GetHostAddresses(baseUrl)[0];
+			var endPoint = new IPEndPoint(ipAddress, 80);
 
-				var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-				socket.BeginConnect(endPoint, (IAsyncResult ar) => ConnectCallback(ar, socket, new Url(baseUrl, urlPath)), null);
+			var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+			socket.BeginConnect(endPoint, (IAsyncResult ar) => ConnectCallback(ar, socket, new Url(baseUrl, urlPath)), null);
 		}
 
 		private static void ConnectCallback(IAsyncResult ar, Socket socket, Url url)
 		{
 			socket.EndConnect(ar);
 
-			string request = $"GET {url.pathUrl} HTTP/1.1\r\nHost: {url.baseUrl}\r\nContent-Length: 120\r\n\r\n";
+			string request = $"GET {url.pathUrl} HTTP/1.1\r\nHost: {url.baseUrl}\r\nContent-Length: 0\r\n\r\n";
 			byte[] requestData = Encoding.ASCII.GetBytes(request);
 			socket.BeginSend(requestData, 0, requestData.Length, 0, (IAsyncResult ar) => SendCallback(ar, socket, url), null);
 		}
@@ -60,23 +59,18 @@ namespace Server
 
 			if (bytesRead > 0)
 			{
-				StringBuilder stringBuilder = new StringBuilder();
-				stringBuilder.Append(Encoding.ASCII.GetString(buffer, 0, bytesRead));
+				string responseHeader = HttpParser.ParseHeader(buffer, bytesRead);
+				int contentLength = HttpParser.ParseContentLength(responseHeader);
 
-				// Check if the response header is fully received
-				string response = stringBuilder.ToString();
-				int contentLength = ParseContentLength(response);
+				Console.WriteLine("------------------------------------------------------------");
+				Console.WriteLine($"Downloaded {url}\n");
+				Console.WriteLine("------------------------------------------------------------");
+				Console.WriteLine($"Header: {responseHeader}\n");
+				Console.WriteLine("------------------------------------------------------------");
+				Console.WriteLine($"Content Length: {contentLength}");
+				Console.WriteLine("------------------------------------------------------------");
 
-				Console.WriteLine(response);
-				Console.WriteLine(contentLength);
-
-				if (contentLength > 0 && response.Length >= contentLength)
-				{
-					// Process or save the file data as needed
-					Console.WriteLine($"Downloaded {url.ToString()}, Content Length: {contentLength}");
-				}
 				socket.Close();
-
 			}
 			else
 			{
@@ -85,29 +79,12 @@ namespace Server
 			}
 		}
 
-		static int ParseContentLength(string response)
-		{
-			int contentLengthIndex = response.IndexOf("Content-Length:", StringComparison.OrdinalIgnoreCase);
-			if (contentLengthIndex != -1)
-			{
-				int startIndex = contentLengthIndex + "Content-Length:".Length;
-				int endIndex = response.IndexOf('\r', startIndex);
-				if (int.TryParse(response.Substring(startIndex, endIndex - startIndex).Trim(), out int contentLength))
-				{
-					return contentLength;
-				}
-			}
-
-			return -1; // Invalid or missing Content-Length header
-		}
-
 		public static void Run(string[] urls)
 		{
 			try
 			{
 				foreach (string url in urls)
 				{
-					Console.WriteLine($"{url}");
 					HandleUrl(url);
 				}
 				while (true)

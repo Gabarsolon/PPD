@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Net.WebRequestMethods;
 
 class Program
 {
@@ -13,6 +14,7 @@ class Program
 	{
 		string[] urls = new string[]{
 			"www.google.ro",
+			"flashboot.ru/files/file/1/download/ssdmp_rm1135-rts5735_740",
 			"www.scs.ubbcluj.ro/~trie3244",
 			"www.youtube.ro"
 		};
