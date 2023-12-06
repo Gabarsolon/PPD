@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
@@ -9,6 +10,7 @@ import java.util.stream.Collectors;
 public class Main {
     static int MAX_COEFFICIENT = 1000;
     static int MAX_DEGREE = 100;
+
     static void printPolynomial(int[] polynomial) {
         var stringBuilder = new StringBuilder("%d".formatted(polynomial[0]));
 
@@ -19,11 +21,11 @@ public class Main {
         System.out.println(stringBuilder);
     }
 
-    static int[] generateRandomPolynomial(){
+    static int[] generateRandomPolynomial() {
         var random = new Random();
         int degree = random.nextInt(MAX_DEGREE);
         int[] polynomial = new int[degree];
-        for(int i = 0;i<degree;i++){
+        for (int i = 0; i < degree; i++) {
             polynomial[i] = random.nextInt(MAX_COEFFICIENT);
         }
         return polynomial;
@@ -39,7 +41,7 @@ public class Main {
         System.out.println(stringBuilder);
     }
 
-    static void regularMultiplicationSequential(int[] polynomial1, int[] polynomial2) {
+    static int[] regularMultiplicationSequential(int[] polynomial1, int[] polynomial2) {
         int polynomial1Degree = polynomial1.length;
         int polynomial2Degree = polynomial2.length;
 
@@ -51,10 +53,10 @@ public class Main {
             for (int j = 0; j < polynomial2Degree; j++)
                 product[i + j] += polynomial1[i] * polynomial2[j];
 
-        printPolynomial(product);
+        return product;
     }
 
-    static void regularMultiplicationParallel(int[] polynomial1, int[] polynomial2) {
+    static AtomicIntegerArray regularMultiplicationParallel(int[] polynomial1, int[] polynomial2) {
         int polynomial1Degree = polynomial1.length;
         int polynomial2Degree = polynomial2.length;
 
@@ -66,21 +68,32 @@ public class Main {
             for (int j = 0; j < polynomial2Degree; j++) {
                 int finalI = i;
                 int finalJ = j;
-                completableFutures.add(CompletableFuture.supplyAsync(() -> {
-                    product.addAndGet(finalI + finalJ, polynomial1[finalI] * polynomial2[finalJ]);
-                    return null;
-                }));
+                completableFutures.add(CompletableFuture.runAsync(() -> product.addAndGet(finalI + finalJ, polynomial1[finalI] * polynomial2[finalJ])));
             }
 
-        CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[completableFutures.size()])).join();
+        CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[completableFutures.size() - 1])).join();
 
-        printPolynomial(product);
+        return product;
     }
 
     public static void main(String[] args) {
         int[] polynomial1 = {5, 0, 10, 6};
         int[] polynomial2 = {1, 2, 4};
-        regularMultiplicationSequential(polynomial1, polynomial2);
-        regularMultiplicationParallel(polynomial1, polynomial2);
+
+        long start, end;
+
+        start = System.nanoTime();
+        int[] product = regularMultiplicationSequential(polynomial1, polynomial2);
+        end = System.nanoTime();
+
+        System.out.printf("Regular multiplication sequential finished in: %dms\n", (end - start) / 1000000);
+
+        start = System.nanoTime();
+        AtomicIntegerArray productAtomic = regularMultiplicationParallel(polynomial1, polynomial2);
+        end = System.nanoTime();
+
+        System.out.printf("Regular multiplication parallel finished in: %dms\n", (end - start) / 1000000);
+        printPolynomial(product);
+        printPolynomial(productAtomic);
     }
 }
