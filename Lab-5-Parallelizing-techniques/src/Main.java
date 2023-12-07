@@ -64,12 +64,13 @@ public class Main {
 
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 
-        for (int i = 0; i < polynomial1Degree; i++)
-            for (int j = 0; j < polynomial2Degree; j++) {
-                int finalI = i;
-                int finalJ = j;
-                completableFutures.add(CompletableFuture.runAsync(() -> product.addAndGet(finalI + finalJ, polynomial1[finalI] * polynomial2[finalJ])));
-            }
+        for (int i = 0; i < polynomial1Degree; i++) {
+            int finalI = i;
+            completableFutures.add(CompletableFuture.runAsync(() -> {
+                for (int j = 0; j < polynomial2Degree; j++)
+                    product.addAndGet(finalI + j, polynomial1[finalI] * polynomial2[j]);
+            }));
+        }
 
         CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[completableFutures.size() - 1])).join();
 
@@ -77,8 +78,11 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        int[] polynomial1 = {5, 0, 10, 6};
-        int[] polynomial2 = {1, 2, 4};
+//        int[] polynomial1 = {5, 0, 10, 6};
+//        int[] polynomial2 = {1, 2, 4};
+
+        int[] polynomial1 = generateRandomPolynomial();
+        int[] polynomial2 = generateRandomPolynomial();
 
         long start, end;
 
