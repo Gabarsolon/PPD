@@ -51,7 +51,7 @@ public class Main {
         System.out.printf("Regular multiplication sequential finished in: %dms\n", (end - start) / 1000000);
 
         start = System.nanoTime();
-        AtomicIntegerArray productAtomic = RegularMultiplication.parallel(polynomial1, polynomial2);
+        int[] productAtomic = RegularMultiplication.parallel(polynomial1, polynomial2);
         end = System.nanoTime();
 
         printPolynomial(product);
@@ -64,6 +64,13 @@ public class Main {
         end = System.nanoTime();
 
         System.out.printf("Karatsuba multiplication sequential finished in: %dms\n", (end - start) / 1000000);
+        printPolynomial(product);
+
+        start = System.nanoTime();
+        product = KaratsubaMultiplication.multiplySequential(polynomial1, polynomial2);
+        end = System.nanoTime();
+
+        System.out.printf("Karatsuba multiplication parallel finished in: %dms\n", (end - start) / 1000000);
         printPolynomial(product);
     }
 }

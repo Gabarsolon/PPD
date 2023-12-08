@@ -19,19 +19,23 @@ public class RegularMultiplication {
         return product;
     }
 
-    static AtomicIntegerArray parallel(int[] polynomial1, int[] polynomial2) {
+    static int[] parallel(int[] polynomial1, int[] polynomial2) {
         int polynomial1Degree = polynomial1.length;
         int polynomial2Degree = polynomial2.length;
 
-        var product = new AtomicIntegerArray(polynomial1Degree + polynomial2Degree - 1);
+        var product = new int[polynomial1Degree + polynomial2Degree - 1];
+        var productLength = product.length;
 
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 
-        for (int i = 0; i < polynomial1Degree; i++) {
+        for (int i = 0; i < productLength; i++) {
             int finalI = i;
+
             completableFutures.add(CompletableFuture.runAsync(() -> {
-                for (int j = 0; j < polynomial2Degree; j++)
-                    product.addAndGet(finalI + j, polynomial1[finalI] * polynomial2[j]);
+                for (int j = 0; j <= finalI; j++) {
+                    if (j < polynomial1Degree && finalI - j < polynomial2Degree)
+                        product[finalI] += polynomial1[j] * polynomial2[finalI - j];
+                }
             }));
         }
 
