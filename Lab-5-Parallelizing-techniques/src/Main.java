@@ -1,4 +1,6 @@
+import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public class Main {
@@ -35,12 +37,12 @@ public class Main {
         return polynomial;
     }
 
-    public static void main(String[] args) {
-        int[] polynomial1 = {5, 0, 10, 6};
-        int[] polynomial2 = {1, 2, 4};
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+//        int[] polynomial1 = {1, 1};
+//        int[] polynomial2 = {1, 1};
 
-//        int[] polynomial1 = generateRandomPolynomial();
-//        int[] polynomial2 = generateRandomPolynomial();
+        int[] polynomial1 = generateRandomPolynomial();
+        int[] polynomial2 = generateRandomPolynomial();
 
         long start, end;
 
@@ -67,10 +69,11 @@ public class Main {
         printPolynomial(product);
 
         start = System.nanoTime();
-        product = KaratsubaMultiplication.multiplySequential(polynomial1, polynomial2);
+        product = KaratsubaMultiplication.multiplyParallel(polynomial1, polynomial2);
         end = System.nanoTime();
 
         System.out.printf("Karatsuba multiplication parallel finished in: %dms\n", (end - start) / 1000000);
         printPolynomial(product);
+
     }
 }

@@ -1,10 +1,12 @@
+import jdk.jshell.execution.Util;
+
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class KaratsubaMultiplication {
     static int[] multiplySequential(int[] polynomial1, int[] polynomial2) {
-        if (polynomial1.length < 2 || polynomial2.length < 2)
+        if (polynomial1.length < 3 || polynomial2.length < 3)
             return RegularMultiplication.sequential(polynomial1, polynomial2);
 
         int length = Math.max(polynomial1.length, polynomial2.length) / 2;
@@ -19,17 +21,13 @@ public class KaratsubaMultiplication {
         int[] f2 = multiplySequential(Utils.addPolynomials(E1, E0), Utils.addPolynomials(D0, D1));
         int[] f3 = multiplySequential(E0, D0);
 
-        int[] r1 = new int[length * 2];
-        int[] r2 = new int[length];
+        int[] r = new int[polynomial1.length * polynomial2.length - 1];
 
-        System.arraycopy(f3, 0, r1, 0, f3.length);
-        r2 = Utils.substractPolynomials(Utils.substractPolynomials(f2, f3), f1);
-
-        return Utils.addPolynomials(Utils.addPolynomials(r1, r2), f1);
+        return Utils.addPolynomials(r, Utils.addPolynomials(f1, Utils.addPolynomials(Utils.substractPolynomials(f2, Utils.substractPolynomials(f1, f3)), f3)));
     }
 
     static int[] multiplyParallel(int[] polynomial1, int[] polynomial2) throws ExecutionException, InterruptedException {
-        if (polynomial1.length < 2 || polynomial2.length < 2)
+        if (polynomial1.length < 3 || polynomial2.length < 3)
             return RegularMultiplication.parallel(polynomial1, polynomial2);
 
         int length = Math.max(polynomial1.length, polynomial2.length) / 2;
@@ -48,12 +46,8 @@ public class KaratsubaMultiplication {
         int[] f2 = f2Future.get();
         int[] f3 = f3Future.get();
 
-        int[] r1 = new int[length * 2];
-        int[] r2 = new int[length];
+        int[] r = new int[polynomial1.length * polynomial2.length - 1];
 
-        System.arraycopy(f3, 0, r1, 0, f3.length);
-        r2 = Utils.substractPolynomials(Utils.substractPolynomials(f2, f3), f1);
-
-        return Utils.addPolynomials(Utils.addPolynomials(r1, r2), f1);
+        return Utils.addPolynomials(r, Utils.addPolynomials(f1, Utils.addPolynomials(Utils.substractPolynomials(f2, Utils.substractPolynomials(f1, f3)), f3)));
     }
 }
