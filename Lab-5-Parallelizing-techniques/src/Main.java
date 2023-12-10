@@ -38,11 +38,11 @@ public class Main {
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-//        int[] polynomial1 = {1, 1};
-//        int[] polynomial2 = {1, 1};
+        int[] polynomial1 = {1, 1, 1};
+        int[] polynomial2 = {1, 1, 1};
 
-        int[] polynomial1 = generateRandomPolynomial();
-        int[] polynomial2 = generateRandomPolynomial();
+//        int[] polynomial1 = generateRandomPolynomial();
+//        int[] polynomial2 = generateRandomPolynomial();
 
         long start, end;
 

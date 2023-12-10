@@ -1,3 +1,8 @@
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 public class Utils {
     static int[] addPolynomials(int[] p1, int[] p2) {
         int minimumLength = Math.min(p1.length, p2.length);
@@ -35,5 +40,11 @@ public class Utils {
                 diff[i] -= p2[i];
 
         return diff;
+    }
+
+    public static int[] addZerosToPolynomial(int[] p, int offset) {
+        int[] newPolynomial = new int[offset + p.length];
+        System.arraycopy(p, 0, newPolynomial, offset, p.length);
+        return newPolynomial;
     }
 }
