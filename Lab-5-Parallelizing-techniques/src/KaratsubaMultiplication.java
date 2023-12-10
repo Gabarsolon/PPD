@@ -16,11 +16,11 @@ public class KaratsubaMultiplication {
 
         int len = Math.max(p1Degree, p2Degree) / 2;
 
-        int[] lowP1 = Arrays.copyOfRange(p1, 0, len);
-        int[] highP1 = Arrays.copyOfRange(p1, len, p1.length);
+        int[] lowP1 = Arrays.copyOfRange(p1, 0, p1Degree / 2);
+        int[] highP1 = Arrays.copyOfRange(p1, p1Degree / 2, p1.length);
 
-        int[] lowP2 = Arrays.copyOfRange(p2, 0, len);
-        int[] highP2 = Arrays.copyOfRange(p2, len, p2.length);
+        int[] lowP2 = Arrays.copyOfRange(p2, 0, p2Degree / 2);
+        int[] highP2 = Arrays.copyOfRange(p2, p2Degree / 2, p2.length);
 
 
         int[] z1 = multiplySequential(lowP1, lowP2);
@@ -46,13 +46,13 @@ public class KaratsubaMultiplication {
 
         int len = Math.max(p1Degree, p2Degree) / 2;
 
-        int[] lowP1 = Arrays.copyOfRange(p1, 0, len);
-        int[] highP1 = Arrays.copyOfRange(p1, len, p1.length);
+        int[] lowP1 = Arrays.copyOfRange(p1, 0, p1Degree / 2);
+        int[] highP1 = Arrays.copyOfRange(p1, p1Degree / 2, p1.length);
 
-        int[] lowP2 = Arrays.copyOfRange(p2, 0, len);
-        int[] highP2 = Arrays.copyOfRange(p2, len, p2.length);
+        int[] lowP2 = Arrays.copyOfRange(p2, 0, p2Degree / 2);
+        int[] highP2 = Arrays.copyOfRange(p2, p2Degree / 2, p2.length);
 
-        CompletableFuture<int[]> f1Future = CompletableFuture.supplyAsync(() ->multiplySequential(lowP1, lowP2));
+        CompletableFuture<int[]> f1Future = CompletableFuture.supplyAsync(() -> multiplySequential(lowP1, lowP2));
         CompletableFuture<int[]> f2Future = CompletableFuture.supplyAsync(() -> multiplySequential(Utils.addPolynomials(lowP1, highP1), Utils.addPolynomials(lowP2, highP2)));
         CompletableFuture<int[]> f3Future = CompletableFuture.supplyAsync(() -> multiplySequential(highP1, highP2));
 

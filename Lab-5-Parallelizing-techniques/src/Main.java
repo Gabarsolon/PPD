@@ -30,7 +30,7 @@ public class Main {
     static int[] generateRandomPolynomial() {
         var random = new Random();
         int degree = random.nextInt(MAX_DEGREE);
-        int[] polynomial = new int[degree];
+        int[] polynomial = new int[degree + 1];
         for (int i = 0; i < degree; i++) {
             polynomial[i] = random.nextInt(MAX_COEFFICIENT);
         }
@@ -38,11 +38,15 @@ public class Main {
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        int[] polynomial1 = {1, 1, 1};
-        int[] polynomial2 = {1, 1, 1};
+//        int[] polynomial1 = {1, 12};
+//        int[] polynomial2 = {1, 1, 1};
 
-//        int[] polynomial1 = generateRandomPolynomial();
-//        int[] polynomial2 = generateRandomPolynomial();
+        int[] polynomial1 = generateRandomPolynomial();
+        int[] polynomial2 = generateRandomPolynomial();
+
+        printPolynomial(polynomial1);
+        printPolynomial(polynomial2);
+        System.out.println("--------------------------");
 
         long start, end;
 
