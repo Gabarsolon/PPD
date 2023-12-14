@@ -17,32 +17,22 @@ public class Main {
         System.out.println(stringBuilder);
     }
 
-    static void printPolynomial(AtomicIntegerArray polynomial) {
-        var stringBuilder = new StringBuilder("%d".formatted(polynomial.get(0)));
-
-        for (int i = 1; i < polynomial.length(); i++) {
-            stringBuilder.append(" + %d%s".formatted(polynomial.get(i), "x^%d".formatted(i)));
-        }
-
-        System.out.println(stringBuilder);
-    }
-
-    static int[] generateRandomPolynomial() {
+    static int[] generateRandomPolynomial(int degree) {
         var random = new Random();
-        int degree = random.nextInt(MAX_DEGREE);
+//        int degree = random.nextInt(degree);
         int[] polynomial = new int[degree + 1];
-        for (int i = 0; i < degree; i++) {
-            polynomial[i] = random.nextInt(MAX_COEFFICIENT);
+        for (int i = 0; i <= degree; i++) {
+            polynomial[i] = 1;
         }
         return polynomial;
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-//        int[] polynomial1 = {1, 12};
+//        int[] polynomial1 = {1, 1, 2};
 //        int[] polynomial2 = {1, 1, 1};
 
-        int[] polynomial1 = generateRandomPolynomial();
-        int[] polynomial2 = generateRandomPolynomial();
+        int[] polynomial1 = generateRandomPolynomial(4);
+        int[] polynomial2 = generateRandomPolynomial(4);
 
         printPolynomial(polynomial1);
         printPolynomial(polynomial2);

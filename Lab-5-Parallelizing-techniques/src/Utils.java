@@ -34,18 +34,12 @@ public class Utils {
 
         if (p1.length == maximumLength)
             for (int i = minimumLength; i < maximumLength; i++)
-                diff[i] = p1[i];
+                diff[i] += p1[i];
         else
             for (int i = minimumLength; i < maximumLength; i++)
-                diff[i] = p2[i];
+                diff[i] -= p2[i];
 
-        int i = diff.length - 1;
-
-        while(diff[i] == 0 && i > 0)
-            i--;
-
-
-        return Arrays.copyOfRange(diff, 0, diff.length + 1);
+        return diff;
     }
 
     public static int[] addZerosToPolynomial(int[] p, int offset) {
