@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public class Main {
     static int MAX_COEFFICIENT = 1000;
-    static int MAX_DEGREE = 100;
+    static int MAX_DEGREE = 1000;
 
     static void printPolynomial(int[] polynomial) {
         var stringBuilder = new StringBuilder("%d".formatted(polynomial[0]));
@@ -17,12 +17,12 @@ public class Main {
         System.out.println(stringBuilder);
     }
 
-    static int[] generateRandomPolynomial(int degree) {
+    static int[] generateRandomPolynomial() {
         var random = new Random();
-//        int degree = random.nextInt(degree);
+        int degree = MAX_DEGREE;
         int[] polynomial = new int[degree + 1];
         for (int i = 0; i <= degree; i++) {
-            polynomial[i] = 1;
+            polynomial[i] = random.nextInt(MAX_COEFFICIENT);
         }
         return polynomial;
     }
@@ -31,11 +31,11 @@ public class Main {
 //        int[] polynomial1 = {1, 1, 2};
 //        int[] polynomial2 = {1, 1, 1};
 
-        int[] polynomial1 = generateRandomPolynomial(4);
-        int[] polynomial2 = generateRandomPolynomial(4);
+        int[] polynomial1 = generateRandomPolynomial();
+        int[] polynomial2 = generateRandomPolynomial();
 
-        printPolynomial(polynomial1);
-        printPolynomial(polynomial2);
+//        printPolynomial(polynomial1);
+//        printPolynomial(polynomial2);
         System.out.println("--------------------------");
 
         long start, end;
@@ -50,17 +50,17 @@ public class Main {
         int[] productAtomic = RegularMultiplication.parallel(polynomial1, polynomial2);
         end = System.nanoTime();
 
-        printPolynomial(product);
+//        printPolynomial(product);
 
         System.out.printf("Regular multiplication parallel finished in: %dms\n", (end - start) / 1000000);
-        printPolynomial(productAtomic);
+//        printPolynomial(productAtomic);
 
         start = System.nanoTime();
         product = KaratsubaMultiplication.multiplySequential(polynomial1, polynomial2);
         end = System.nanoTime();
 
         System.out.printf("Karatsuba multiplication sequential finished in: %dms\n", (end - start) / 1000000);
-        printPolynomial(product);
+//        printPolynomial(product);
 
         start = System.nanoTime();
         product = KaratsubaMultiplication.multiplyParallel(polynomial1, polynomial2);
