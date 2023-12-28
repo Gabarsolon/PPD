@@ -1,7 +1,6 @@
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -13,40 +12,36 @@ public class Main {
 
     static Integer START_VERTEX = 0;
     static Integer totalNumberOfEdges = 10000;
-    static Integer numberOfVerticies = 20;
+    static Integer numberOfVertices = 30;
     static Map<Integer, List<Integer>> outboundEdgesMap;
+    static private Integer MAX_DEPTH = 1;
     static private ReentrantLock foundHamiltonianCycleLock = new ReentrantLock();
     static private Condition foundHamiltonianCycleCondition = foundHamiltonianCycleLock.newCondition();
     static private List<Integer> foundHamiltonianCycle = null;
-    static private Integer MAX_DEPTH = 1;
-    static private AtomicInteger functionCount = new AtomicInteger(0);
 
     static void hamCycleUtilParallel(List<Integer> cycle, Map<Integer, Boolean> visitedVertices, Integer startVertex, Integer lastAddedVertex, Integer currentDepth) throws ExecutionException, InterruptedException {
-        functionCount.getAndIncrement();
-//        System.out.println(cycle);
-        if (cycle.size() == numberOfVerticies) {
+
+        if (cycle.size() == numberOfVertices) {
             if (outboundEdgesMap.get(lastAddedVertex).contains(startVertex)) {
                 foundHamiltonianCycleLock.lock();
+
                 cycle.add(startVertex);
-                foundHamiltonianCycle = cycle;
+                foundHamiltonianCycle = new ArrayList<>(cycle);
                 foundHamiltonianCycleCondition.signalAll();
-                foundHamiltonianCycleLock.unlock();
-            }
-            functionCount.getAndDecrement();
-            if (functionCount.get() < 1) {
-                foundHamiltonianCycleLock.lock();
-                foundHamiltonianCycleCondition.signalAll();
+
                 foundHamiltonianCycleLock.unlock();
             }
             return;
         }
+
+        List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 
         for (var nextVertex : outboundEdgesMap.get(lastAddedVertex)) {
             if (visitedVertices.get(nextVertex) != null) {
                 continue;
             }
 
-            if (currentDepth > MAX_DEPTH) {
+            if (currentDepth >= MAX_DEPTH) {
                 cycle.add(nextVertex);
                 visitedVertices.put(nextVertex, true);
 
@@ -55,32 +50,35 @@ public class Main {
                 cycle.remove(cycle.size() - 1);
                 visitedVertices.remove(nextVertex);
             } else {
-
                 // Create a copy of the cycle and visited vertices
-                List<Integer> updatedCycle = new ArrayList<>();
-                Map<Integer, Boolean> updatedVisitedVertices = new HashMap<>();
-
-                updatedCycle.addAll(cycle);
-                updatedVisitedVertices.putAll(visitedVertices);
+                List<Integer> updatedCycle = new ArrayList<>(cycle);
+                Map<Integer, Boolean> updatedVisitedVertices = new HashMap<>(visitedVertices);
 
                 updatedCycle.add(nextVertex);
                 updatedVisitedVertices.put(nextVertex, true);
 
-                CompletableFuture.runAsync(() -> {
+                completableFutures.add(CompletableFuture.runAsync(() -> {
                     try {
                         hamCycleUtilParallel(updatedCycle, updatedVisitedVertices, startVertex, nextVertex, currentDepth + 1);
                     } catch (ExecutionException | InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                });
+                }));
             }
         }
 
-        functionCount.getAndDecrement();
+        for (var completableFuture : completableFutures) {
+            completableFuture.get();
+        }
+        if (currentDepth == 0) {
+            foundHamiltonianCycleLock.lock();
+            foundHamiltonianCycleCondition.signalAll();
+            foundHamiltonianCycleLock.unlock();
+        }
     }
 
     static boolean hamCycleUtilSequential(List<Integer> cycle, Map<Integer, Boolean> visitedVertices, Integer startVertex, Integer lastAddedVertex) {
-        if (cycle.size() == numberOfVerticies) {
+        if (cycle.size() == numberOfVertices) {
             if (outboundEdgesMap.get(lastAddedVertex).contains(startVertex)) {
                 cycle.add(startVertex);
                 return true;
@@ -118,13 +116,18 @@ public class Main {
             if (hasHamiltonianCycle)
                 return cycle;
         } else {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    hamCycleUtilParallel(cycle, visitedVertices, startVertex, startVertex, 0);
+                } catch (ExecutionException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            });
             foundHamiltonianCycleLock.lock();
-            hamCycleUtilParallel(cycle, visitedVertices, startVertex, startVertex, 0);
             foundHamiltonianCycleCondition.await();
             foundHamiltonianCycleLock.unlock();
             return foundHamiltonianCycle;
         }
-
 
         return null;
     }
@@ -149,12 +152,12 @@ public class Main {
         var currentNumberOfAddedEdges = 0;
         outboundEdgesMap = new HashMap<>();
 
-        for (Integer vertex = 0; vertex < numberOfVerticies; vertex++) {
+        for (Integer vertex = 0; vertex < numberOfVertices; vertex++) {
             List<Integer> listOfVertices = new ArrayList<>();
 
-            for (int currentVertex = random.nextInt(0, numberOfVerticies / 2);
-                 currentVertex < numberOfVerticies && currentNumberOfAddedEdges < totalNumberOfEdges;
-                 currentVertex += random.nextInt(1, numberOfVerticies / 2 + 1)
+            for (int currentVertex = random.nextInt(0, numberOfVertices / 2);
+                 currentVertex < numberOfVertices && currentNumberOfAddedEdges < totalNumberOfEdges;
+                 currentVertex += random.nextInt(1, numberOfVertices / 2 + 1)
             ) {
                 listOfVertices.add(currentVertex);
                 currentNumberOfAddedEdges++;
@@ -185,15 +188,13 @@ public class Main {
         System.out.printf("Sequential execution finished in: %dms\n", (endTime - startTime) / 1000000);
         printHamiltonianCycle(hamiltonianCycle);
 
+        System.out.println("-----------------------------------------------------");
+
         startTime = System.nanoTime();
         hamiltonianCycle = getHamiltonianCycleStartingFromGivenVertex(START_VERTEX, EXECUTION_TYPE.PARALLEL);
         endTime = System.nanoTime();
 
         System.out.printf("Parallel execution finished in: %dms\n", (endTime - startTime) / 1000000);
-        printHamiltonianCycle(hamiltonianCycle);
-
-
-        System.out.println("--------------------------------------------------------");
         printHamiltonianCycle(hamiltonianCycle);
     }
 }
