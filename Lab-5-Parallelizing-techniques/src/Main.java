@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public class Main {
     static int MAX_COEFFICIENT = 1000;
-    static int MAX_DEGREE = 1000;
+    static int MAX_DEGREE = 10000;
 
     static void printPolynomial(int[] polynomial) {
         var stringBuilder = new StringBuilder("%d".formatted(polynomial[0]));
