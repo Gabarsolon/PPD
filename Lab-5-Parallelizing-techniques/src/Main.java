@@ -4,8 +4,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public class Main {
-    static int MAX_COEFFICIENT = 1000;
-    static int MAX_DEGREE = 20000;
+    static int MAX_COEFFICIENT = 1000000;
+    static int MAX_DEGREE = 10000;
 
     static void printPolynomial(int[] polynomial) {
         var stringBuilder = new StringBuilder("%d".formatted(polynomial[0]));
@@ -45,15 +45,18 @@ public class Main {
         end = System.nanoTime();
 
         System.out.printf("Regular multiplication sequential finished in: %dms\n", (end - start) / 1000000);
+//        printPolynomial(product);
+        System.out.println("---------------------------------------------------------------------------");
+
 
         start = System.nanoTime();
-        int[] productAtomic = RegularMultiplication.parallel(polynomial1, polynomial2);
+        product = RegularMultiplication.parallel(polynomial1, polynomial2);
         end = System.nanoTime();
 
-//        printPolynomial(product);
-
         System.out.printf("Regular multiplication parallel finished in: %dms\n", (end - start) / 1000000);
-//        printPolynomial(productAtomic);
+//        printPolynomial(product);
+        System.out.println("---------------------------------------------------------------------------");
+
 
         start = System.nanoTime();
         product = KaratsubaMultiplication.multiplySequential(polynomial1, polynomial2);
@@ -61,6 +64,8 @@ public class Main {
 
         System.out.printf("Karatsuba multiplication sequential finished in: %dms\n", (end - start) / 1000000);
 //        printPolynomial(product);
+        System.out.println("---------------------------------------------------------------------------");
+
 
         start = System.nanoTime();
         product = KaratsubaMultiplication.multiplyParallel(polynomial1, polynomial2);
@@ -68,6 +73,8 @@ public class Main {
 
         System.out.printf("Karatsuba multiplication parallel finished in: %dms\n", (end - start) / 1000000);
 //        printPolynomial(product);
+        System.out.println("---------------------------------------------------------------------------");
+
 
     }
 }

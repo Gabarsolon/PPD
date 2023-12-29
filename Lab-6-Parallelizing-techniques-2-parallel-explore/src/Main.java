@@ -14,7 +14,7 @@ public class Main {
     static Integer totalNumberOfEdges = 10000;
     static Integer numberOfVertices = 30;
     static Map<Integer, List<Integer>> outboundEdgesMap;
-    static private Integer MAX_DEPTH = 1;
+    static private Integer MAX_DEPTH = 2;
     static private ReentrantLock foundHamiltonianCycleLock = new ReentrantLock();
     static private Condition foundHamiltonianCycleCondition = foundHamiltonianCycleLock.newCondition();
     static private List<Integer> foundHamiltonianCycle = null;

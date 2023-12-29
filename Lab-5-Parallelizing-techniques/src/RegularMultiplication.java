@@ -23,23 +23,25 @@ public class RegularMultiplication {
         int polynomial1Degree = polynomial1.length - 1;
         int polynomial2Degree = polynomial2.length - 1;
 
-        var product = new int[polynomial1Degree + polynomial2Degree];
+        var product = new int[polynomial1Degree + polynomial2Degree + 1];
         var productLength = product.length;
         var halfOfProductLength = productLength / 2;
 
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 
 
-        for (int i = 0; i < productLength; i++) {
+        for (int i = 0; i < halfOfProductLength; i++) {
             int finalI = i;
-            int limit = 0;
-            if (finalI > halfOfProductLength)
-                limit = finalI - halfOfProductLength;
-            int finalLimit = limit;
-
             completableFutures.add(CompletableFuture.runAsync(() -> {
-                for (int j = 0 + finalLimit; j <= finalI - finalLimit; j++) {
+                for (int j = 0; j <= finalI; j++) {
                     product[finalI] += polynomial1[j] * polynomial2[finalI - j];
+                }
+
+                int finalI2 = productLength - finalI - 1;
+                int lowerLimit = finalI2 - halfOfProductLength;
+                int upperLimit = finalI2 - lowerLimit;
+                for (int j = lowerLimit; j <= upperLimit; j++) {
+                    product[finalI2] += polynomial1[j] * polynomial2[finalI2 - j];
                 }
             }));
         }
