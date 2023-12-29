@@ -4,8 +4,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public class Main {
-    static int MAX_COEFFICIENT = 1000000;
-    static int MAX_DEGREE = 10000;
+    static int MAX_COEFFICIENT = 1000;
+    static int MAX_DEGREE = 100000;
+
+    static boolean PRINT_OUTPUT_FLAG = false;
 
     static void printPolynomial(int[] polynomial) {
         var stringBuilder = new StringBuilder("%d".formatted(polynomial[0]));
@@ -45,7 +47,7 @@ public class Main {
         end = System.nanoTime();
 
         System.out.printf("Regular multiplication sequential finished in: %dms\n", (end - start) / 1000000);
-//        printPolynomial(product);
+        if (PRINT_OUTPUT_FLAG) printPolynomial(product);
         System.out.println("---------------------------------------------------------------------------");
 
 
@@ -54,7 +56,7 @@ public class Main {
         end = System.nanoTime();
 
         System.out.printf("Regular multiplication parallel finished in: %dms\n", (end - start) / 1000000);
-//        printPolynomial(product);
+        if (PRINT_OUTPUT_FLAG) printPolynomial(product);
         System.out.println("---------------------------------------------------------------------------");
 
 
@@ -63,7 +65,7 @@ public class Main {
         end = System.nanoTime();
 
         System.out.printf("Karatsuba multiplication sequential finished in: %dms\n", (end - start) / 1000000);
-//        printPolynomial(product);
+        if (PRINT_OUTPUT_FLAG) printPolynomial(product);
         System.out.println("---------------------------------------------------------------------------");
 
 
@@ -72,7 +74,7 @@ public class Main {
         end = System.nanoTime();
 
         System.out.printf("Karatsuba multiplication parallel finished in: %dms\n", (end - start) / 1000000);
-//        printPolynomial(product);
+        if (PRINT_OUTPUT_FLAG) printPolynomial(product);
         System.out.println("---------------------------------------------------------------------------");
 
 

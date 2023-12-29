@@ -46,6 +46,14 @@ public class RegularMultiplication {
             }));
         }
 
+        if (productLength % 2 != 0) {
+            completableFutures.add(CompletableFuture.runAsync(() -> {
+                for (int j = 0; j <= halfOfProductLength; j++) {
+                    product[halfOfProductLength] += polynomial1[j] * polynomial2[halfOfProductLength - j];
+                }
+            }));
+        }
+
         CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[completableFutures.size() - 1])).join();
 
         return product;
