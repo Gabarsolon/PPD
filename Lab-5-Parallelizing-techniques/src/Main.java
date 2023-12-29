@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public class Main {
     static int MAX_COEFFICIENT = 1000;
-    static int MAX_DEGREE = 10000;
+    static int MAX_DEGREE = 20000;
 
     static void printPolynomial(int[] polynomial) {
         var stringBuilder = new StringBuilder("%d".formatted(polynomial[0]));
@@ -67,7 +67,7 @@ public class Main {
         end = System.nanoTime();
 
         System.out.printf("Karatsuba multiplication parallel finished in: %dms\n", (end - start) / 1000000);
-        printPolynomial(product);
+//        printPolynomial(product);
 
     }
 }

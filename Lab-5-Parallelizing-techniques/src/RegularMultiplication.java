@@ -20,21 +20,26 @@ public class RegularMultiplication {
     }
 
     static int[] parallel(int[] polynomial1, int[] polynomial2) {
-        int polynomial1Degree = polynomial1.length;
-        int polynomial2Degree = polynomial2.length;
+        int polynomial1Degree = polynomial1.length - 1;
+        int polynomial2Degree = polynomial2.length - 1;
 
-        var product = new int[polynomial1Degree + polynomial2Degree - 1];
+        var product = new int[polynomial1Degree + polynomial2Degree];
         var productLength = product.length;
+        var halfOfProductLength = productLength / 2;
 
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 
+
         for (int i = 0; i < productLength; i++) {
             int finalI = i;
+            int limit = 0;
+            if (finalI > halfOfProductLength)
+                limit = finalI - halfOfProductLength;
+            int finalLimit = limit;
 
             completableFutures.add(CompletableFuture.runAsync(() -> {
-                for (int j = 0; j <= finalI; j++) {
-                    if (j < polynomial1Degree && finalI - j < polynomial2Degree)
-                        product[finalI] += polynomial1[j] * polynomial2[finalI - j];
+                for (int j = 0 + finalLimit; j <= finalI - finalLimit; j++) {
+                    product[finalI] += polynomial1[j] * polynomial2[finalI - j];
                 }
             }));
         }
