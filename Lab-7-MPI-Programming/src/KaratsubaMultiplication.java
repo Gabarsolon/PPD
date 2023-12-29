@@ -6,11 +6,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class KaratsubaMultiplication {
+    static int DEGREE_THRESHOLD = 32;
     static int[] multiplySequential(int[] p1, int[] p2) {
         int p1Degree = p1.length - 1;
         int p2Degree = p2.length - 1;
 
-        if (p1Degree < 2 || p2Degree < 2) {
+
+        if (p1Degree < DEGREE_THRESHOLD || p2Degree < DEGREE_THRESHOLD) {
             return RegularMultiplication.sequential(p1, p2);
         }
 
@@ -38,7 +40,7 @@ public class KaratsubaMultiplication {
         int p1Degree = p1.length - 1;
         int p2Degree = p2.length - 1;
 
-        if (p1Degree < 2 || p2Degree < 2) {
+        if (p1Degree < DEGREE_THRESHOLD || p2Degree < DEGREE_THRESHOLD) {
             return RegularMultiplication.sequential(p1, p2);
         }
 
