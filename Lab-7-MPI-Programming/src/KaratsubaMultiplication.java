@@ -79,19 +79,20 @@ public class KaratsubaMultiplication {
             int firstChild = rank + numberOfProcesses / 3;
             int[] sizesForFirstChild = new int[3];
             //number of remaining processes
-            sizesForFirstChild[0] = numberOfProcesses - numberOfProcesses / 3;
+            sizesForFirstChild[0] = numberOfProcesses - 2;
             //size of first polynomial
             sizesForFirstChild[1] = D0.length;
             //size of the second polynomial
             sizesForFirstChild[2] = E0.length;
             MPI.COMM_WORLD.bSend(sizesForFirstChild, 3, MPI.INT, firstChild, 0);
+            System.out.println(D0.length);
             MPI.COMM_WORLD.bSend(D0, D0.length, MPI.INT, firstChild, 0);
             MPI.COMM_WORLD.bSend(E0, E0.length, MPI.INT, firstChild, 0);
 
             int secondChild = rank + numberOfProcesses / 3 + 1;
             int[] sizesForSecondChild = new int[3];
             //number of remaining processes
-            sizesForSecondChild[0] = numberOfProcesses - numberOfProcesses / 3;
+            sizesForSecondChild[0] = numberOfProcesses - 2;
             //size of first polynomial
             sizesForSecondChild[1] = D1.length;
             //size of the second polynomial
@@ -112,7 +113,7 @@ public class KaratsubaMultiplication {
         } else if (numberOfProcesses == 2) {
             int child = rank + 1;
             int[] sizes = new int[3];
-            sizes[0] = 0;
+            sizes[0] = 1;
             sizes[1] = D0.length;
             sizes[2] = E0.length;
             MPI.COMM_WORLD.bSend(sizes, 3, MPI.INT, child, 0);

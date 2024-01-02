@@ -5,9 +5,9 @@ import java.util.concurrent.ExecutionException;
 
 public class Main {
     static int MAX_COEFFICIENT = 1000;
-    static int MAX_DEGREE = 10;
+    static int MAX_DEGREE = 1000;
 
-    static boolean PRINT_OUTPUT_FLAG = true;
+    static boolean PRINT_OUTPUT_FLAG = false;
 
     static void printPolynomial(int[] polynomial) {
         var stringBuilder = new StringBuilder("%d".formatted(polynomial[0]));
@@ -35,25 +35,30 @@ public class Main {
         int rank = MPI.COMM_WORLD.getRank();
         int totalNumberOfProcesses = MPI.COMM_WORLD.getSize();
         System.out.println("Hi! I am the process of rank " + rank);
-        int[] polynomial1 = {1, 1, 2};
-        int[] polynomial2 = {1, 1, 1};
+//        int[] polynomial1 = {1, 1, 2};
+//        int[] polynomial2 = {1, 1, 1};
 
-//        int[] polynomial1 = generateRandomPolynomial();
-//        int[] polynomial2 = generateRandomPolynomial();
 
 //        printPolynomial(polynomial1);
 //        printPolynomial(polynomial2);
 //        System.out.println("--------------------------");
 
         long start, end;
+
         int product[];
 
-        start = System.nanoTime();
-        product = RegularMultiplication.parallel(polynomial1, polynomial2);
-        end = System.nanoTime();
-
-
         if(rank == 0){
+            System.out.println("Sending polynomials to processors...");
+            int[] polynomial1 = generateRandomPolynomial();
+            int[] polynomial2 = generateRandomPolynomial();
+            for(int processorRank = 1; processorRank < totalNumberOfProcesses; processorRank++){
+                MPI.COMM_WORLD.send(polynomial1, polynomial1.length, MPI.INT, processorRank, 0);
+                MPI.COMM_WORLD.send(polynomial2, polynomial2.length, MPI.INT, processorRank, 0);
+            }
+
+            start = System.nanoTime();
+            product = RegularMultiplication.parallel(polynomial1, polynomial2);
+            end = System.nanoTime();
 
 //            printPolynomial(RegularMultiplication.sequential(polynomial1, polynomial2));
             System.out.printf("Regular multiplication parallel finished in: %dms\n", (end - start) / 1000000);
@@ -69,6 +74,11 @@ public class Main {
             System.out.println("---------------------------------------------------------------------------");
         }
         else{
+            int[] polynomial1 = new int[MAX_DEGREE + 1];
+            int[] polynomial2 = new int[MAX_DEGREE + 1];
+            MPI.COMM_WORLD.recv(polynomial1, MAX_DEGREE + 1, MPI.INT, 0, 0);
+            MPI.COMM_WORLD.recv(polynomial2, MAX_DEGREE + 1, MPI.INT, 0, 0);
+            RegularMultiplication.parallel(polynomial1, polynomial2);
             KaratsubaMultiplication.workerForPararllelMultiply(rank);
         }
 
