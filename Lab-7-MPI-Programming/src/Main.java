@@ -1,15 +1,13 @@
 import mpi.*;
 
-import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public class Main {
     static int MAX_COEFFICIENT = 1000;
-    static int MAX_DEGREE = 10;
+    static int MAX_DEGREE = 100000;
 
-    static boolean PRINT_OUTPUT_FLAG = true;
+    static boolean PRINT_OUTPUT_FLAG = false;
 
     static void printPolynomial(int[] polynomial) {
         var stringBuilder = new StringBuilder("%d".formatted(polynomial[0]));
@@ -34,12 +32,13 @@ public class Main {
     public static void main(String[] args) throws ExecutionException, InterruptedException, MPIException {
         MPI.Init(args);
         int rank = MPI.COMM_WORLD.getRank();
+        int totalNumberOfProcesses = MPI.COMM_WORLD.getSize();
         System.out.println("Hi! I am the process of rank " + rank);
-        int[] polynomial1 = {1, 1, 2};
-        int[] polynomial2 = {1, 1, 1};
+//        int[] polynomial1 = {1, 1, 2};
+//        int[] polynomial2 = {1, 1, 1};
 
-//        int[] polynomial1 = generateRandomPolynomial();
-//        int[] polynomial2 = generateRandomPolynomial();
+        int[] polynomial1 = generateRandomPolynomial();
+        int[] polynomial2 = generateRandomPolynomial();
 
 //        printPolynomial(polynomial1);
 //        printPolynomial(polynomial2);
@@ -54,11 +53,25 @@ public class Main {
 
 
         if(rank == 0){
-            printPolynomial(RegularMultiplication.sequential(polynomial1, polynomial2));
+//            printPolynomial(RegularMultiplication.sequential(polynomial1, polynomial2));
             System.out.printf("Regular multiplication parallel finished in: %dms\n", (end - start) / 1000000);
             if (PRINT_OUTPUT_FLAG) printPolynomial(product);
             System.out.println("---------------------------------------------------------------------------");
+
+            start = System.nanoTime();
+            product = KaratsubaMultiplication.multiplyParallel(polynomial1, polynomial2, rank, totalNumberOfProcesses);
+            end = System.nanoTime();
+
+            System.out.printf("Karatsuba multiplication parallel finished in: %dms\n", (end - start) / 1000000);
+            if (PRINT_OUTPUT_FLAG) printPolynomial(product);
+            System.out.println("---------------------------------------------------------------------------");
         }
+        else{
+            KaratsubaMultiplication.workerForPararllelMultiply(rank);
+        }
+
+
+
 
         MPI.Finalize();
     }
