@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class KaratsubaMultiplication {
-    static int DEGREE_THRESHOLD = 32;
+    static int DEGREE_THRESHOLD = 2;
 
     static int[] multiplySequential(int[] p1, int[] p2) {
         int p1Degree = p1.length - 1;
@@ -36,11 +36,27 @@ public class KaratsubaMultiplication {
         return result;
     }
 
-    static void workerForPararllelMultiply(int rank) {
+    static void workerForPararllelMultiply(int rank) throws MPIException {
+        int[] sizes = new int[3];
+        Status mpiStatus = MPI.COMM_WORLD.recv(sizes, 3, MPI.INT, MPI.ANY_SOURCE, 0);
+        int parent = mpiStatus.getSource();
 
+        int remainingNumberOfProcesses = sizes[0];
+        int polynomial1Length = sizes[1];
+        int polynomial2Length = sizes[2];
+
+        int[] polynomial1 = new int[polynomial1Length];
+        MPI.COMM_WORLD.recv(polynomial1, polynomial1Length, MPI.INT, parent, 0);
+
+        int[] polynomial2 = new int[polynomial2Length];
+        MPI.COMM_WORLD.recv(polynomial2, polynomial2Length, MPI.INT, parent, 0);
+
+        int[] product = multiplyParallel(polynomial1, polynomial2, rank, remainingNumberOfProcesses);
+
+        MPI.COMM_WORLD.bSend(product, product.length, MPI.INT, parent, 0);
     }
 
-    static int[] multiplyParallel(int[] p1, int[] p2, int rank, int numberOfProcesses) throws ExecutionException, InterruptedException, MPIException {
+    static int[] multiplyParallel(int[] p1, int[] p2, int rank, int numberOfProcesses) throws MPIException {
         int p1Degree = p1.length - 1;
         int p2Degree = p2.length - 1;
 
@@ -59,7 +75,6 @@ public class KaratsubaMultiplication {
         int[] D0E0 = null;
         int[] MID = null;
         int[] D1E1 = null;
-
         if (numberOfProcesses >= 3) {
             int firstChild = rank + numberOfProcesses / 3;
             int[] sizesForFirstChild = new int[3];
@@ -88,7 +103,7 @@ public class KaratsubaMultiplication {
             MID = multiplySequential(Utils.addPolynomials(D0, D1), Utils.addPolynomials(E0, E1));
             int D0E0_length = D0.length + E0.length - 1;
             D0E0 = new int[D0E0_length];
-            MPI.COMM_WORLD.recv(D0E0, D0E0_length, MPI.INT, secondChild, MPI.ANY_TAG);
+            MPI.COMM_WORLD.recv(D0E0, D0E0_length, MPI.INT, firstChild, MPI.ANY_TAG);
 
             int D1E1_length = D1.length + E1.length - 1;
             D1E1 = new int[D1E1_length];
