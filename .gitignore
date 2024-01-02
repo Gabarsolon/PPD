@@ -474,3 +474,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+#Compiled class file
+*.class
