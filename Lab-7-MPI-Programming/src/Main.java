@@ -48,9 +48,10 @@ public class Main {
         int product[];
 
         if(rank == 0){
-            System.out.println("Sending polynomials to processors...");
             int[] polynomial1 = generateRandomPolynomial();
             int[] polynomial2 = generateRandomPolynomial();
+            System.out.println("Sending polynomials to processors...");
+
             for(int processorRank = 1; processorRank < totalNumberOfProcesses; processorRank++){
                 MPI.COMM_WORLD.send(polynomial1, polynomial1.length, MPI.INT, processorRank, 0);
                 MPI.COMM_WORLD.send(polynomial2, polynomial2.length, MPI.INT, processorRank, 0);
@@ -79,7 +80,7 @@ public class Main {
             MPI.COMM_WORLD.recv(polynomial1, MAX_DEGREE + 1, MPI.INT, 0, 0);
             MPI.COMM_WORLD.recv(polynomial2, MAX_DEGREE + 1, MPI.INT, 0, 0);
             RegularMultiplication.parallel(polynomial1, polynomial2);
-            KaratsubaMultiplication.workerForPararllelMultiply(rank);
+            KaratsubaMultiplication.workerForPararllelMultiply(rank, totalNumberOfProcesses);
         }
 
 
