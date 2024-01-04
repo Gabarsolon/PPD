@@ -6,7 +6,7 @@ import java.util.concurrent.ExecutionException;
 
 public class Main {
     static int MAX_COEFFICIENT = 1000;
-    static int MAX_DEGREE = 100;
+    static int MAX_DEGREE = 1000;
 
     static boolean PRINT_OUTPUT_FLAG = false;
     static String ALGORITHM = "regular";
