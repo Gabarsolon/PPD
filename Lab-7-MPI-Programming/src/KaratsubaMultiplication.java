@@ -3,7 +3,7 @@ import mpi.*;
 import java.util.Arrays;
 
 public class KaratsubaMultiplication {
-    static int DEGREE_THRESHOLD = 2;
+    static int DEGREE_THRESHOLD = 32;
 
     static int[] multiplySequential(int[] p1, int[] p2) {
         int p1Degree = p1.length - 1;
@@ -77,11 +77,10 @@ public class KaratsubaMultiplication {
         int[] D0E0 = null;
         int[] MID = null;
         int[] D1E1 = null;
-        System.out.println("Processor of rank " + rank + " is workin' baby!");
+//        System.out.println("Processor of rank " + rank + " is workin' baby!");
 
         if (hasChildren(numberOfProcesses, level)) {
             int childId = rightChild(numberOfProcesses, rank, level);
-            System.out.println(childId);
             int[] sizesForFirstChild = new int[2];
             //size of first polynomial
             sizesForFirstChild[0] = D0.length;

@@ -6,7 +6,7 @@ import java.util.concurrent.ExecutionException;
 
 public class Main {
     static int MAX_COEFFICIENT = 1000;
-    static int MAX_DEGREE = 1000;
+    static int MAX_DEGREE = 100;
 
     static boolean PRINT_OUTPUT_FLAG = false;
     static String ALGORITHM = "regular";
@@ -65,6 +65,7 @@ public class Main {
                     MPI.COMM_WORLD.send(polynomial2, polynomial2.length, MPI.INT, processorRank, 0);
                 }
 
+                System.out.printf("Polynomials sent, now executing...\n---------------------------------------------\n");
                 start = System.nanoTime();
                 product = RegularMultiplication.parallel(polynomial1, polynomial2);
                 end = System.nanoTime();
@@ -86,25 +87,31 @@ public class Main {
                 int[] polynomial2 = new int[MAX_DEGREE + 1];
                 MPI.COMM_WORLD.recv(polynomial1, MAX_DEGREE + 1, MPI.INT, 0, 0);
                 MPI.COMM_WORLD.recv(polynomial2, MAX_DEGREE + 1, MPI.INT, 0, 0);
+                System.out.println("Polynomial received boss, my codename is: " + rank);
                 RegularMultiplication.parallel(polynomial1, polynomial2);
             } else {
                 //Karatsuba
                 int[] parentAndLevel = KaratsubaMultiplication.getParentAndLevel(totalNumberOfProcesses, rank);
-                System.out.printf(Arrays.toString(parentAndLevel));
-                int p1length = 0;
-                int[] p1 = null;
-                MPI.COMM_WORLD.recv(p1length, 1, MPI.INT, parentAndLevel[0], MPI.ANY_TAG);
-                p1 = new int[p1length];
+
+                System.out.println("Process of rank " + rank + " is waiting for parent's ass");
+                int[] polynomialsLengths = new int[2];
+                MPI.COMM_WORLD.recv(polynomialsLengths, 2, MPI.INT, parentAndLevel[0], MPI.ANY_TAG);
+
+                int p1length = polynomialsLengths[0];
+                int[]p1 = new int[p1length];
                 MPI.COMM_WORLD.recv(p1, p1length, MPI.INT, parentAndLevel[0], MPI.ANY_TAG);
 
 
-                int p2length = 0;
-                int[] p2 = null;
-                MPI.COMM_WORLD.recv(p2length, 1, MPI.INT, parentAndLevel[0], MPI.ANY_TAG);
-                p2 = new int[p2length];
+                int p2length = polynomialsLengths[1];
+                int[] p2 = new int[p2length];
                 MPI.COMM_WORLD.recv(p2, p2length, MPI.INT, parentAndLevel[0], MPI.ANY_TAG);
 
-                KaratsubaMultiplication.multiplyParallel(p1, p2, rank, totalNumberOfProcesses, parentAndLevel[1]);
+                System.out.println("Jeah jeah! I'm process of rank " + rank + " and I got it, jeah, jeah");
+                int[] intermediaryProduct = KaratsubaMultiplication.multiplyParallel(p1, p2, rank, totalNumberOfProcesses, parentAndLevel[1]);
+                System.out.println("Sending to parent some stuff, me of rank " + rank);
+
+                MPI.COMM_WORLD.bSend(intermediaryProduct, intermediaryProduct.length, MPI.INT, parentAndLevel[0], 0);
+                System.out.println("sent to parent some stuff, me of rank " + rank);
             }
 
         }
