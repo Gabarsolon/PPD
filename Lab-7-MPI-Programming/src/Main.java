@@ -93,7 +93,7 @@ public class Main {
                 //Karatsuba
                 int[] parentAndLevel = KaratsubaMultiplication.getParentAndLevel(totalNumberOfProcesses, rank);
 
-                System.out.println("Process of rank " + rank + " is waiting for parent's ass");
+                System.out.println("Process of rank " + rank + " is waiting for parent");
                 int[] polynomialsLengths = new int[2];
                 MPI.COMM_WORLD.recv(polynomialsLengths, 2, MPI.INT, parentAndLevel[0], MPI.ANY_TAG);
 
