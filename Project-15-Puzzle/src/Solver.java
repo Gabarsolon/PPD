@@ -1,3 +1,5 @@
+import mpi.MPIException;
+
 import java.io.InputStreamReader;
 import java.util.ArrayDeque;
 import java.util.PriorityQueue;
@@ -35,9 +37,8 @@ class Solver {
     }
 
     private Node lastNode;
-    private boolean solvable;
 
-    public Solver(Board initial) {
+    public Solver(Board initial) throws MPIException {
         N = initial.dimension();
         PriorityQueue<Node> pq = new PriorityQueue<Node>();
         pq.add(new Node(initial, 0, null));
@@ -46,7 +47,6 @@ class Solver {
             if (removed.board.isGoal()) {
                 minMoves = removed.moves;
                 lastNode = removed;
-                solvable = true;
                 break;
             }
 
@@ -60,18 +60,11 @@ class Solver {
         }
     }
 
-    public boolean isSolvable() {
-        return solvable;
-    }
-
     public int moves() {
         return minMoves;
     }
 
     public Iterable<Board> solution() {
-        if (!isSolvable()) {
-            return null;
-        }
         Stack<Board> stack = new Stack<Board>();
         Node node = lastNode;
         while (true) {
