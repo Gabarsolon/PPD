@@ -10,24 +10,16 @@ class Board {
     private int N;
     int emptyRow;
     int emptyCol;
-    boolean reached;
     int manhattan = 0;
 
     public Board(int[][] blocks) {
+        array = blocks;
         N = blocks.length;
-        array = new int[N][N];
-        reached = true;
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
-                array[i][j] = blocks[i][j];
                 if (array[i][j] == 0) {
                     emptyRow = i;
                     emptyCol = j;
-                }
-                if (array[i][j] != N * i + j + 1) {
-                    if (!(i == N - 1 && j == N - 1)) {
-                        reached = false;
-                    }
                 }
                 int num = array[i][j];
                 if (num == 0) {
@@ -49,9 +41,7 @@ class Board {
     }
 
     public boolean isGoal() {
-        if (reached)
-            System.out.println(manhattan);
-        return reached;
+        return manhattan == 0;
     }
 
     // A utility function to count inversions in given
@@ -135,49 +125,35 @@ class Board {
 
     public Iterable<Board> neighbors() throws ExecutionException, InterruptedException {
         Queue<Board> q = new ArrayDeque<Board>();
-        int firstIndex0 = 0;
-        int secondIndex0 = 0;
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                if (array[i][j] == 0) {
-                    firstIndex0 = i;
-                    secondIndex0 = j;
-                    break;
-                }
-            }
-        }
-
         List<CompletableFuture<Board>> completableFutures = new ArrayList<>();
 
-        int finalFirstIndex = firstIndex0;
-        int finalSecondIndex = secondIndex0;
-        int finalFirstIndex1 = firstIndex0;
-        int finalSecondIndex1 = secondIndex0;
-        if (secondIndex0 > 0) {
+        int finalFirstIndex = emptyRow;
+        int finalSecondIndex = emptyCol;
+        if (emptyCol > 0) {
             completableFutures.add(CompletableFuture.supplyAsync(() -> {
                 int[][] newArr = getCopy();
-                exch(newArr, finalFirstIndex, finalSecondIndex, finalFirstIndex1, finalSecondIndex1 - 1);
+                exch(newArr, finalFirstIndex, finalSecondIndex, finalFirstIndex, finalSecondIndex - 1);
                 return new Board(newArr);
             }));
         }
-        if (secondIndex0 < N - 1)
+        if (emptyCol < N - 1)
             completableFutures.add(CompletableFuture.supplyAsync(() -> {
                 int[][] newArr = getCopy();
-                exch(newArr, finalFirstIndex, finalSecondIndex, finalFirstIndex1, finalSecondIndex1 + 1);
+                exch(newArr, finalFirstIndex, finalSecondIndex, finalFirstIndex, finalSecondIndex + 1);
                 return new Board(newArr);
             }));
 
-        if (firstIndex0 > 0)
+        if (emptyRow > 0)
             completableFutures.add(CompletableFuture.supplyAsync(() -> {
                 int[][] newArr = getCopy();
-                exch(newArr, finalFirstIndex, finalSecondIndex, finalFirstIndex1 - 1, finalSecondIndex1);
+                exch(newArr, finalFirstIndex, finalSecondIndex, finalFirstIndex - 1, finalSecondIndex);
                 return new Board(newArr);
             }));
 
-        if (firstIndex0 < N - 1)
+        if (emptyRow < N - 1)
             completableFutures.add(CompletableFuture.supplyAsync(() -> {
                 int[][] newArr = getCopy();
-                exch(newArr, finalFirstIndex, finalSecondIndex, finalFirstIndex1 + 1, finalSecondIndex1);
+                exch(newArr, finalFirstIndex, finalSecondIndex, finalFirstIndex + 1, finalSecondIndex);
                 return new Board(newArr);
             }));
 

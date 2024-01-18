@@ -45,10 +45,10 @@ class Main {
         long start = System.currentTimeMillis();
         int N = 4;
         int[][] blocks = {
-                {1, 3, 4, 8,},
-                {10, 2, 0, 6,},
-                {5, 9, 7, 12,},
-                {13, 14,11, 15,}
+                {10, 1, 8, 6,},
+                {5, 3, 2, 12,},
+                {13, 9, 4, 15,},
+                {14, 7, 11, 0,}
         };
         initCorrectRowsCols(N);
 
