@@ -52,6 +52,7 @@ class Solver {
 
             Iterable<Board> neighbors = removed.board.neighbors();
             for (Board board : neighbors) {
+                System.out.println(board.toString());
                 if (removed.prevNode != null && removed.prevNode.board.equals(board)) {
                     continue;
                 }

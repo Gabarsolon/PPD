@@ -1,11 +1,7 @@
-import mpi.MPI;
-import mpi.MPIException;
+import mpi.*;
 
 import java.lang.reflect.Array;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Queue;
+import java.util.*;
 
 class Board {
     private int[][] array;
@@ -21,7 +17,7 @@ class Board {
     }
 
     public Board(int[][] blocks, int manhattan, int emptyRow, int emptyCol){
-        array = blocks;
+        this.array = blocks;
         this.manhattan = manhattan;
         this.emptyRow = emptyRow;
         this.emptyCol = emptyCol;
@@ -163,39 +159,53 @@ class Board {
             int[][] newArr = getCopy();
             exch(newArr, emptyRow, emptyCol, emptyRow, emptyCol - 1);
             listOfProcessesToWhichDataWasSent.put(1, newArr);
-            MPI.COMM_WORLD.bSend(newArr, N * N, MPI.INT, 1, 0);
+            for(int i=0;i<N;i++)
+                MPI.COMM_WORLD.send(newArr[i], N, MPI.INT, 1, 0);
         }
         if (emptyCol < N - 1) {
             int[][] newArr = getCopy();
             exch(newArr, emptyRow, emptyCol, emptyRow, emptyCol + 1);
             listOfProcessesToWhichDataWasSent.put(2, newArr);
-            MPI.COMM_WORLD.bSend(newArr, N * N, MPI.INT, 2, 0);
+            for(int i=0;i<N;i++)
+                MPI.COMM_WORLD.send(newArr[i], N, MPI.INT, 2, 0);
         }
         if (emptyRow > 0) {
             int[][] newArr = getCopy();
             exch(newArr, emptyRow, emptyCol, emptyRow - 1, emptyCol);
             listOfProcessesToWhichDataWasSent.put(3, newArr);
-            MPI.COMM_WORLD.bSend(newArr, N * N, MPI.INT, 3, 0);
+            for(int i=0;i<N;i++)
+                MPI.COMM_WORLD.send(newArr[i], N, MPI.INT, 3, 0);
         }
         if (emptyRow < N - 1) {
             int[][] newArr = getCopy();
             exch(newArr, emptyRow, emptyCol, emptyRow + 1, emptyCol);
             listOfProcessesToWhichDataWasSent.put(4, newArr);
-            MPI.COMM_WORLD.bSend(newArr, N * N, MPI.INT, 4, 0);
+            for(int i=0;i<N;i++)
+                MPI.COMM_WORLD.send(newArr[i], N, MPI.INT, 4, 0);
         }
 
-        listOfProcessesToWhichDataWasSent.forEach((processId, array) -> {
+        listOfProcessesToWhichDataWasSent.forEach((processId, arr) -> {
             try {
-                var receivedManhattanDistance = 0;
+                int[] receivedManhattanDistance = new int[1];
 
                 int currentEmptyRow = emptyRow, currentEmptyCol = emptyCol;
-                if(processId < 3)
-                    currentEmptyCol += (-2) * (processId % 2) + 1;
-                else
-                    currentEmptyRow += (-2) * (processId % 2) + 1;
+                switch (processId){
+                    case 1:
+                        emptyCol -= 1;
+                        break;
+                    case 2:
+                        emptyCol += 1;
+                        break;
+                    case 3:
+                        emptyRow -= 1;
+                        break;
+                    case 4:
+                        emptyRow += 1;
+                }
 
+                System.out.println("Receiving the manhattan distance from process: " + processId);
                 MPI.COMM_WORLD.recv(receivedManhattanDistance, 1, MPI.INT,  processId, MPI.ANY_TAG);
-                q.add(new Board(array, receivedManhattanDistance, currentEmptyRow, currentEmptyCol));
+                q.add(new Board(arr, receivedManhattanDistance[0], currentEmptyRow, currentEmptyCol));
             } catch (MPIException e) {
                 throw new RuntimeException(e);
             }
@@ -215,6 +225,7 @@ class Board {
     }
 
     private void exch(int[][] arr, int firstIndex, int secIndex, int firstIndex2, int secIndex2) {
+        System.out.println(Arrays.deepToString(arr));
         int temp = arr[firstIndex][secIndex];
         arr[firstIndex][secIndex] = arr[firstIndex2][secIndex2];
         arr[firstIndex2][secIndex2] = temp;

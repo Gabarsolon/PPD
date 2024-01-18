@@ -86,7 +86,8 @@ class Main {
         } else {
             while (true) {
                 int[][] arr = new int[N][N];
-                MPI.COMM_WORLD.recv(arr, N*N, MPI.INT, 0, MPI.ANY_TAG);
+                for(int i=0 ;i<N;i++)
+                    MPI.COMM_WORLD.recv(arr[i], N, MPI.INT, 0, MPI.ANY_TAG);
                 int manhattan = Board.computeManhattan(arr);
                 MPI.COMM_WORLD.send(manhattan, 1, MPI.INT, 0, 0);
             }
