@@ -51,11 +51,16 @@ class Main {
         long start = System.currentTimeMillis();
         N = 4;
         int[][] blocks = {
-                {7, 14, 12, 5,},
-                {9, 2, 13, 4,},
-                {1, 11, 15, 0,},
-                {3, 10, 8, 6,}
+                {1, 3, 4, 0,},
+                {10, 2, 6, 8,},
+                {5, 9, 7, 12,},
+                {13, 14,11, 15,}
         };
+//        int[][] blocks = {
+//                {3, 2, 3},
+//                {4, 6, 1},
+//                {7, 0, 8}
+//        };
         initCorrectRowsCols(N);
 
         Board initial = new Board(blocks);
@@ -63,6 +68,7 @@ class Main {
 
         if (!initial.isSolvable()) {
             if (rank == 0) System.out.println("The board is not solvable");
+            MPI.Finalize();
             return;
         }
 
@@ -81,14 +87,14 @@ class Main {
                 stack.push(board);
             while (!stack.isEmpty()) {
                 System.out.println(stack.pop());
-
             }
         } else {
             while (true) {
                 int[][] arr = new int[N][N];
                 for(int i=0 ;i<N;i++)
                     MPI.COMM_WORLD.recv(arr[i], N, MPI.INT, 0, MPI.ANY_TAG);
-                int manhattan = Board.computeManhattan(arr);
+                int[] manhattan = new int[1];
+                manhattan[0] = Board.computeManhattan(arr);
                 MPI.COMM_WORLD.send(manhattan, 1, MPI.INT, 0, 0);
             }
         }
