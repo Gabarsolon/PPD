@@ -49,6 +49,11 @@ class Main {
 
         Board initial = new Board(blocks);
 
+        if(!initial.isSolvable()){
+            System.out.println("Not solvable");
+            return;
+        }
+        System.out.println("solvable");
         // solve the puzzle
         Solver solver = new Solver(initial);
 

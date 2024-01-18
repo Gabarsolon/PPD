@@ -40,37 +40,22 @@ class Solver {
     public Solver(Board initial) {
         N = initial.dimension();
         PriorityQueue<Node> pq = new PriorityQueue<Node>();
-        PriorityQueue<Node> pq2 = new PriorityQueue<Node>();
         pq.add(new Node(initial, 0, null));
-        pq2.add(new Node(initial.twin(), 0, null));
         while (true) {
             Node removed = pq.poll();
-            Node removed2 = pq2.poll();
             if (removed.board.isGoal()) {
                 minMoves = removed.moves;
                 lastNode = removed;
                 solvable = true;
                 break;
             }
-            if (removed2.board.isGoal()) {
-                minMoves = -1;
-                solvable = false;
-                break;
-            }
 
             Iterable<Board> neighbors = removed.board.neighbors();
-            Iterable<Board> neighbors2 = removed2.board.neighbors();
             for (Board board : neighbors) {
                 if (removed.prevNode != null && removed.prevNode.board.equals(board)) {
                     continue;
                 }
                 pq.add(new Node(board, removed.moves + 1, removed));
-            }
-            for (Board board : neighbors2) {
-                if (removed2.prevNode != null && removed2.prevNode.board.equals(board)) {
-                    continue;
-                }
-                pq2.add(new Node(board, removed2.moves + 1, removed2));
             }
         }
     }
