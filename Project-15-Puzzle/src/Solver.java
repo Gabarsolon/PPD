@@ -46,50 +46,58 @@ class Solver {
         PriorityBlockingQueue<Node> pq = new PriorityBlockingQueue<>();
         pq.add(new Node(initial, 0, null));
 
-        ExecutorService executor = Executors.newFixedThreadPool(4);
+        int noOfThreads = 2;
+
+        ExecutorService executor = Executors.newFixedThreadPool(noOfThreads);
 
         long start = System.currentTimeMillis();
 
-        executor.execute(() -> {
-            while (true) {
-                Node removed = pq.poll();
-                if (removed.board.isGoal()) {
-                    minMoves = removed.moves;
-                    lastNode = removed;
-                    solvable = true;
+        for (int i = 0; i < noOfThreads; i++)
+            executor.execute(() -> {
+                while (true) {
+                    Node removed = null;
+                    try {
+                        removed = pq.take();
+                    } catch (InterruptedException e) {
+                        break;
+                    }
+                    if (removed.board.isGoal()) {
+                        minMoves = removed.moves;
+                        lastNode = removed;
+                        solvable = true;
 
-                    System.out.println("Minimum number of moves = " + moves());
-                    Stack<Board> stack = new Stack<Board>();
-                    for (Board board : solution())
-                        stack.push(board);
-                    while (!stack.isEmpty()) {
-                        System.out.println(stack.pop());
+                        System.out.println("Minimum number of moves = " + moves());
+                        Stack<Board> stack = new Stack<Board>();
+                        for (Board board : solution())
+                            stack.push(board);
+                        while (!stack.isEmpty()) {
+                            System.out.println(stack.pop());
+                        }
+
+                        long end = System.currentTimeMillis();
+                        System.out.println("time taken " + (end - start) + " milli seconds");
+
+                        executor.shutdownNow();
+
+                        break;
                     }
 
-                    long end = System.currentTimeMillis();
-                    System.out.println("time taken " + (end - start) + " milli seconds");
-
-                    executor.shutdownNow();
-
-                    break;
-                }
-
-                Iterable<Board> neighbors = null;
-                try {
-                    neighbors = removed.board.neighbors();
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                for (Board board : neighbors) {
-                    if (removed.prevNode != null && removed.prevNode.board.equals(board)) {
-                        continue;
+                    Iterable<Board> neighbors = null;
+                    try {
+                        neighbors = removed.board.neighbors();
+                    } catch (ExecutionException e) {
+                        throw new RuntimeException(e);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
-                    pq.add(new Node(board, removed.moves + 1, removed));
+                    for (Board board : neighbors) {
+                        if (removed.prevNode != null && removed.prevNode.board.equals(board)) {
+                            continue;
+                        }
+                        pq.add(new Node(board, removed.moves + 1, removed));
+                    }
                 }
-            }
-        });
+            });
     }
 
     public boolean isSolvable() {
