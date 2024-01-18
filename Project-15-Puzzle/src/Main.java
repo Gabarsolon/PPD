@@ -40,20 +40,22 @@ class Main {
 
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
-        // create initial board from file
-        Scanner in = new Scanner(new InputStreamReader(System.in));
-        System.out.print("Input the board size (N): ");
-        int N = in.nextInt();
-        int[][] blocks = generateRandomBlocks(N);
+        int N = 4;
+        int[][] blocks = {
+            {7,  14,  12,   5,},
+            {9,   2,  13,   4,},
+            {1,  11,  15,   0,},
+            {3,  10,   8,   6,}
+        };
         initCorrectRowsCols(N);
 
         Board initial = new Board(blocks);
 
         if(!initial.isSolvable()){
-            System.out.println("Not solvable");
+            System.out.println("The board is not solvable");
             return;
         }
-        System.out.println("solvable");
+        System.out.println("The board is solvable, solving it right naw!!!...");
         // solve the puzzle
         Solver solver = new Solver(initial);
 
