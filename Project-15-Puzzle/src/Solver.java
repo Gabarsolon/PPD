@@ -4,6 +4,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.Stack;
+import java.util.concurrent.ExecutionException;
 
 class Solver {
     private int N;
@@ -37,7 +38,7 @@ class Solver {
     private Node lastNode;
     private boolean solvable;
 
-    public Solver(Board initial) {
+    public Solver(Board initial) throws ExecutionException, InterruptedException {
         N = initial.dimension();
         PriorityQueue<Node> pq = new PriorityQueue<Node>();
         pq.add(new Node(initial, 0, null));

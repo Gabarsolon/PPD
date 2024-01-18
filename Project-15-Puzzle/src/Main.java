@@ -1,5 +1,6 @@
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -38,14 +39,16 @@ class Main {
         return blocks;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+
+
         long start = System.currentTimeMillis();
         int N = 4;
         int[][] blocks = {
-            {7,  14,  12,   5,},
-            {9,   2,  13,   4,},
-            {1,  11,  15,   0,},
-            {3,  10,   8,   6,}
+                {1, 3, 4, 8,},
+                {10, 2, 0, 6,},
+                {5, 9, 7, 12,},
+                {13, 14,11, 15,}
         };
         initCorrectRowsCols(N);
 

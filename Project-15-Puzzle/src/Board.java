@@ -1,5 +1,9 @@
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 class Board {
     private int[][] array;
@@ -45,6 +49,8 @@ class Board {
     }
 
     public boolean isGoal() {
+        if (reached)
+            System.out.println(manhattan);
         return reached;
     }
 
@@ -52,8 +58,7 @@ class Board {
     // array 'arr[]'. Note that this function can be
     // optimized to work in O(n Log n) time. The idea
     // here is to keep code small and simple.
-    private int getInvCount(int[] arr)
-    {
+    private int getInvCount(int[] arr) {
         int inv_count = 0;
         for (int i = 0; i < N * N - 1; i++) {
             for (int j = i + 1; j < N * N; j++) {
@@ -69,8 +74,7 @@ class Board {
 
 
     // find Position of blank from bottom
-    private int findXPosition()
-    {
+    private int findXPosition() {
         // start from bottom-right corner of matrix
         for (int i = N - 1; i >= 0; i--)
             for (int j = N - 1; j >= 0; j--)
@@ -80,7 +84,7 @@ class Board {
     }
 
 
-    public boolean isSolvable(){
+    public boolean isSolvable() {
         // Count inversions in given puzzle
         int[] arr = new int[N * N];
         int k = 0;
@@ -129,7 +133,7 @@ class Board {
         return true;
     }
 
-    public Iterable<Board> neighbors() {
+    public Iterable<Board> neighbors() throws ExecutionException, InterruptedException {
         Queue<Board> q = new ArrayDeque<Board>();
         int firstIndex0 = 0;
         int secondIndex0 = 0;
@@ -142,26 +146,45 @@ class Board {
                 }
             }
         }
+
+        List<CompletableFuture<Board>> completableFutures = new ArrayList<>();
+
+        int finalFirstIndex = firstIndex0;
+        int finalSecondIndex = secondIndex0;
+        int finalFirstIndex1 = firstIndex0;
+        int finalSecondIndex1 = secondIndex0;
         if (secondIndex0 > 0) {
-            int[][] newArr = getCopy();
-            exch(newArr, firstIndex0, secondIndex0, firstIndex0, secondIndex0 - 1);
-            q.add(new Board(newArr));
+            completableFutures.add(CompletableFuture.supplyAsync(() -> {
+                int[][] newArr = getCopy();
+                exch(newArr, finalFirstIndex, finalSecondIndex, finalFirstIndex1, finalSecondIndex1 - 1);
+                return new Board(newArr);
+            }));
         }
-        if (secondIndex0 < N - 1) {
-            int[][] newArr = getCopy();
-            exch(newArr, firstIndex0, secondIndex0, firstIndex0, secondIndex0 + 1);
-            q.add(new Board(newArr));
+        if (secondIndex0 < N - 1)
+            completableFutures.add(CompletableFuture.supplyAsync(() -> {
+                int[][] newArr = getCopy();
+                exch(newArr, finalFirstIndex, finalSecondIndex, finalFirstIndex1, finalSecondIndex1 + 1);
+                return new Board(newArr);
+            }));
+
+        if (firstIndex0 > 0)
+            completableFutures.add(CompletableFuture.supplyAsync(() -> {
+                int[][] newArr = getCopy();
+                exch(newArr, finalFirstIndex, finalSecondIndex, finalFirstIndex1 - 1, finalSecondIndex1);
+                return new Board(newArr);
+            }));
+
+        if (firstIndex0 < N - 1)
+            completableFutures.add(CompletableFuture.supplyAsync(() -> {
+                int[][] newArr = getCopy();
+                exch(newArr, finalFirstIndex, finalSecondIndex, finalFirstIndex1 + 1, finalSecondIndex1);
+                return new Board(newArr);
+            }));
+
+        for(var completableFuture : completableFutures){
+            q.add(completableFuture.get());
         }
-        if (firstIndex0 > 0) {
-            int[][] newArr = getCopy();
-            exch(newArr, firstIndex0, secondIndex0, firstIndex0 - 1, secondIndex0);
-            q.add(new Board(newArr));
-        }
-        if (firstIndex0 < N - 1) {
-            int[][] newArr = getCopy();
-            exch(newArr, firstIndex0, secondIndex0, firstIndex0 + 1, secondIndex0);
-            q.add(new Board(newArr));
-        }
+
         return q;
     }
 
