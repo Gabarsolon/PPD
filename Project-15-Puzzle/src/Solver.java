@@ -46,7 +46,7 @@ class Solver {
         PriorityBlockingQueue<Node> pq = new PriorityBlockingQueue<>();
         pq.add(new Node(initial, 0, null));
 
-        ExecutorService executor = Executors.newFixedThreadPool(3);
+        ExecutorService executor = Executors.newFixedThreadPool(4);
 
         long start = System.currentTimeMillis();
 

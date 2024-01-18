@@ -125,42 +125,27 @@ class Board {
 
     public Iterable<Board> neighbors() throws ExecutionException, InterruptedException {
         Queue<Board> q = new ArrayDeque<Board>();
-        List<CompletableFuture<Board>> completableFutures = new ArrayList<>();
 
-        int finalFirstIndex = emptyRow;
-        int finalSecondIndex = emptyCol;
         if (emptyCol > 0) {
-            completableFutures.add(CompletableFuture.supplyAsync(() -> {
-                int[][] newArr = getCopy();
-                exch(newArr, finalFirstIndex, finalSecondIndex, finalFirstIndex, finalSecondIndex - 1);
-                return new Board(newArr);
-            }));
+            int[][] newArr = getCopy();
+            exch(newArr, emptyRow, emptyCol, emptyRow, emptyCol - 1);
+            q.add(new Board(newArr));
         }
-        if (emptyCol < N - 1)
-            completableFutures.add(CompletableFuture.supplyAsync(() -> {
-                int[][] newArr = getCopy();
-                exch(newArr, finalFirstIndex, finalSecondIndex, finalFirstIndex, finalSecondIndex + 1);
-                return new Board(newArr);
-            }));
-
-        if (emptyRow > 0)
-            completableFutures.add(CompletableFuture.supplyAsync(() -> {
-                int[][] newArr = getCopy();
-                exch(newArr, finalFirstIndex, finalSecondIndex, finalFirstIndex - 1, finalSecondIndex);
-                return new Board(newArr);
-            }));
-
-        if (emptyRow < N - 1)
-            completableFutures.add(CompletableFuture.supplyAsync(() -> {
-                int[][] newArr = getCopy();
-                exch(newArr, finalFirstIndex, finalSecondIndex, finalFirstIndex + 1, finalSecondIndex);
-                return new Board(newArr);
-            }));
-
-        for(var completableFuture : completableFutures){
-            q.add(completableFuture.get());
+        if (emptyCol < N - 1) {
+            int[][] newArr = getCopy();
+            exch(newArr, emptyRow, emptyCol, emptyRow, emptyCol + 1);
+            q.add(new Board(newArr));
         }
-
+        if (emptyRow > 0) {
+            int[][] newArr = getCopy();
+            exch(newArr, emptyRow, emptyCol, emptyRow - 1, emptyCol);
+            q.add(new Board(newArr));
+        }
+        if (emptyRow < N - 1) {
+            int[][] newArr = getCopy();
+            exch(newArr, emptyRow, emptyCol, emptyRow + 1, emptyCol);
+            q.add(new Board(newArr));
+        }
         return q;
     }
 

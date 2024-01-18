@@ -42,13 +42,13 @@ class Main {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
 
         int N = 4;
-//        int[][] blocks = {
-//                {10, 1, 8, 6,},
-//                {5, 3, 2, 12,},
-//                {13, 9, 4, 0,},
-//                {14, 7, 11, 15,}
-//        };
-        int[][] blocks = generateRandomBlocks(N);
+        int[][] blocks = {
+                {10, 1, 8, 6,},
+                {5, 3, 2, 12,},
+                {13, 9, 4, 0,},
+                {14, 7, 11, 15,}
+        };
+//        int[][] blocks = generateRandomBlocks(N);
         initCorrectRowsCols(N);
 
         Board initial = new Board(blocks);
