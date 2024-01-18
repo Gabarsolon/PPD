@@ -5,6 +5,9 @@ import java.util.Queue;
 import java.util.Scanner;
 import java.util.Stack;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.PriorityBlockingQueue;
 
 class Solver {
     private int N;
@@ -40,25 +43,53 @@ class Solver {
 
     public Solver(Board initial) throws ExecutionException, InterruptedException {
         N = initial.dimension();
-        PriorityQueue<Node> pq = new PriorityQueue<Node>();
+        PriorityBlockingQueue<Node> pq = new PriorityBlockingQueue<>();
         pq.add(new Node(initial, 0, null));
-        while (true) {
-            Node removed = pq.poll();
-            if (removed.board.isGoal()) {
-                minMoves = removed.moves;
-                lastNode = removed;
-                solvable = true;
-                break;
-            }
 
-            Iterable<Board> neighbors = removed.board.neighbors();
-            for (Board board : neighbors) {
-                if (removed.prevNode != null && removed.prevNode.board.equals(board)) {
-                    continue;
+        ExecutorService executor = Executors.newFixedThreadPool(3);
+
+        long start = System.currentTimeMillis();
+
+        executor.execute(() -> {
+            while (true) {
+                Node removed = pq.poll();
+                if (removed.board.isGoal()) {
+                    minMoves = removed.moves;
+                    lastNode = removed;
+                    solvable = true;
+
+                    System.out.println("Minimum number of moves = " + moves());
+                    Stack<Board> stack = new Stack<Board>();
+                    for (Board board : solution())
+                        stack.push(board);
+                    while (!stack.isEmpty()) {
+                        System.out.println(stack.pop());
+                    }
+
+                    long end = System.currentTimeMillis();
+                    System.out.println("time taken " + (end - start) + " milli seconds");
+
+                    executor.shutdownNow();
+
+                    break;
                 }
-                pq.add(new Node(board, removed.moves + 1, removed));
+
+                Iterable<Board> neighbors = null;
+                try {
+                    neighbors = removed.board.neighbors();
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                for (Board board : neighbors) {
+                    if (removed.prevNode != null && removed.prevNode.board.equals(board)) {
+                        continue;
+                    }
+                    pq.add(new Node(board, removed.moves + 1, removed));
+                }
             }
-        }
+        });
     }
 
     public boolean isSolvable() {

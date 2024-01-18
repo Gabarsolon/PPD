@@ -41,15 +41,14 @@ class Main {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
 
-
-        long start = System.currentTimeMillis();
         int N = 4;
-        int[][] blocks = {
-                {10, 1, 8, 6,},
-                {5, 3, 2, 12,},
-                {13, 9, 4, 15,},
-                {14, 7, 11, 0,}
-        };
+//        int[][] blocks = {
+//                {10, 1, 8, 6,},
+//                {5, 3, 2, 12,},
+//                {13, 9, 4, 0,},
+//                {14, 7, 11, 15,}
+//        };
+        int[][] blocks = generateRandomBlocks(N);
         initCorrectRowsCols(N);
 
         Board initial = new Board(blocks);
@@ -61,21 +60,5 @@ class Main {
         System.out.println("The board is solvable, solving it right naw!!!...");
         // solve the puzzle
         Solver solver = new Solver(initial);
-
-        long end = System.currentTimeMillis();
-        System.out.println("time taken " + (end - start) + " milli seconds");
-
-        // print solution to standard output
-        if (!solver.isSolvable())
-            System.out.println("No solution possible");
-        else {
-            System.out.println("Minimum number of moves = " + solver.moves());
-            Stack<Board> stack = new Stack<Board>();
-            for (Board board : solver.solution())
-                stack.push(board);
-            while (!stack.isEmpty()) {
-                System.out.println(stack.pop());
-            }
-        }
     }
 }
