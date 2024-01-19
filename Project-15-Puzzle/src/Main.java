@@ -88,6 +88,9 @@ class Main {
             while (!stack.isEmpty()) {
                 System.out.println(stack.pop());
             }
+            
+            MPI.COMM_WORLD.abort(0);
+
         } else {
             while (true) {
                 int[][] arr = new int[N][N];
