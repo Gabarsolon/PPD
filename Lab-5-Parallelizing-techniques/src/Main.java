@@ -6,7 +6,6 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
 public class Main {
     static int MAX_COEFFICIENT = 1000;
     static int MAX_DEGREE = 100000;
-
     static boolean PRINT_OUTPUT_FLAG = false;
 
     static void printPolynomial(int[] polynomial) {

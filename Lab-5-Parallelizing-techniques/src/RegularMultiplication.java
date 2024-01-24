@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public class RegularMultiplication {
@@ -19,7 +20,7 @@ public class RegularMultiplication {
         return product;
     }
 
-    static int[] parallel(int[] polynomial1, int[] polynomial2) {
+    static int[] parallel(int[] polynomial1, int[] polynomial2) throws ExecutionException, InterruptedException {
         int polynomial1Degree = polynomial1.length - 1;
         int polynomial2Degree = polynomial2.length - 1;
 
@@ -54,7 +55,10 @@ public class RegularMultiplication {
             }));
         }
 
-        CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[completableFutures.size() - 1])).join();
+        for(var completableFuture : completableFutures)
+            completableFuture.get();
+
+//        CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[completableFutures.size() - 1])).join();
 
         return product;
     }

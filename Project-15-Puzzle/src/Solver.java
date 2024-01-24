@@ -94,6 +94,7 @@ class Solver {
                         if (removed.prevNode != null && removed.prevNode.board.equals(board)) {
                             continue;
                         }
+                        pq.peek();
                         pq.add(new Node(board, removed.moves + 1, removed));
                     }
                 }

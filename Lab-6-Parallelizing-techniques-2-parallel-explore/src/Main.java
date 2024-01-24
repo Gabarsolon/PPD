@@ -1,8 +1,11 @@
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Main {
     enum EXECUTION_TYPE {
@@ -14,7 +17,7 @@ public class Main {
     static Integer totalNumberOfEdges = 10000;
     static Integer numberOfVertices = 30;
     static Map<Integer, List<Integer>> outboundEdgesMap;
-    static private Integer MAX_DEPTH = 2;
+    static private Integer MAX_DEPTH = 4;
     static private ReentrantLock foundHamiltonianCycleLock = new ReentrantLock();
     static private Condition foundHamiltonianCycleCondition = foundHamiltonianCycleLock.newCondition();
     static private List<Integer> foundHamiltonianCycle = null;
@@ -116,6 +119,7 @@ public class Main {
             if (hasHamiltonianCycle)
                 return cycle;
         } else {
+            foundHamiltonianCycleLock.lock();
             CompletableFuture.runAsync(() -> {
                 try {
                     hamCycleUtilParallel(cycle, visitedVertices, startVertex, startVertex, 0);
@@ -123,7 +127,6 @@ public class Main {
                     throw new RuntimeException(e);
                 }
             });
-            foundHamiltonianCycleLock.lock();
             foundHamiltonianCycleCondition.await();
             foundHamiltonianCycleLock.unlock();
             return foundHamiltonianCycle;
@@ -176,6 +179,8 @@ public class Main {
 //                4, List.of(0)
 //        );
 //        numberOfVerticies = 5;
+
+        var lockStuff = new ReentrantReadWriteLock();
 
         generateRandomGraph();
         System.out.println(outboundEdgesMap.entrySet());

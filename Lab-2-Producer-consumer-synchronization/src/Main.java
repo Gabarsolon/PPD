@@ -22,7 +22,7 @@ public class Main {
                 }
                 computedProductPairs.add(firstVector.get(index) * secondVector.get(index));
                 condition.signalAll();
-            } catch (InterruptedException exception) {
+            } catch (Exception exception) {
                 Thread.currentThread().interrupt();
             } finally {
                 lockObj.unlock();
@@ -39,7 +39,7 @@ public class Main {
                 }
                 scalarProduct += computedProductPairs.poll();
                 condition.signalAll();
-            } catch (InterruptedException exception) {
+            } catch (Exception exception) {
                 Thread.currentThread().interrupt();
             } finally {
                 lockObj.unlock();
