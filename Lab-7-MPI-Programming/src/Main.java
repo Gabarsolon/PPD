@@ -85,7 +85,7 @@ public class Main {
             if (ALGORITHM.equals("regular")) {
                 int[] polynomial1 = new int[MAX_DEGREE + 1];
                 int[] polynomial2 = new int[MAX_DEGREE + 1];
-                MPI.COMM_WORLD.recv(polynomial1, MAX_DEGREE + 1, MPI.INT, 0, 0);
+                  MPI.COMM_WORLD.recv(polynomial1, MAX_DEGREE + 1, MPI.INT, 0, 0);
                 MPI.COMM_WORLD.recv(polynomial2, MAX_DEGREE + 1, MPI.INT, 0, 0);
                 System.out.println("Polynomial received boss, my codename is: " + rank);
                 RegularMultiplication.parallel(polynomial1, polynomial2);
